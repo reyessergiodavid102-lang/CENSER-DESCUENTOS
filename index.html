@@ -33,11 +33,15 @@
             const messages = {
                 'auth/invalid-credential': 'Correo o contraseña incorrectos.',
                 'auth/invalid-email': 'El correo no tiene un formato válido.',
+                'auth/user-not-found': 'No existe un usuario con ese correo en Firebase Authentication.',
+                'auth/wrong-password': 'La contraseña no coincide con la cuenta.',
                 'auth/user-disabled': 'Esta cuenta de administrador está deshabilitada.',
                 'auth/operation-not-allowed': 'Activa el proveedor Email/Password en Firebase Authentication.',
+                'auth/unauthorized-domain': 'Agrega el dominio de Render en Firebase Authentication > Settings > Authorized domains.',
+                'auth/network-request-failed': 'No hay conexión con Firebase. Comprueba la conexión e inténtalo de nuevo.',
                 'auth/too-many-requests': 'Demasiados intentos. Espere unos minutos y vuelva a intentarlo.'
             };
-            return messages[errorCode] || 'No se pudo iniciar sesión. Intente nuevamente.';
+            return messages[errorCode] || `No se pudo iniciar sesión (${errorCode || 'error desconocido'}).`;
         }
 
         window.loginAdmin = async function() {
