@@ -5,8 +5,7 @@ COPY logo.svg /usr/share/nginx/html/logo.svg
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 ENV PORT=10000
-
 EXPOSE 10000
 
-CMD ["nginx", "-g", "daemon off;"]
+
 
