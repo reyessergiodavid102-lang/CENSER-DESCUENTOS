@@ -10,6 +10,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
         import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+        import { addDoc, collection, deleteDoc, doc, getDocs, getFirestore, query, updateDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
@@ -23,6 +24,9 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const database = getFirestore(app);
+        window.firestoreDatabase = database;
+        window.firestoreApi = { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where, writeBatch };
 
         function setAdminPanel(isAuthenticated) {
             document.getElementById('admin-login-form').style.display = isAuthenticated ? 'none' : 'block';
@@ -318,7 +322,7 @@
         }
 
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             let json;
             try {
                 const data = new Uint8Array(e.target.result);
@@ -348,31 +352,47 @@
                 return;
             }
 
-            // Guardar en el almacenamiento local del navegador
-            localStorage.setItem('censer_descuentos_db', JSON.stringify(json));
-            renderAdminData();
-            showAlert(alertBox, 'Base de datos cargada y guardada exitosamente.', 'success');
-            fileInput.value = '';
+            try {
+                const remoteCollection = firestoreApi.collection(firestoreDatabase, 'descuentos');
+                const oldRecords = await firestoreApi.getDocs(remoteCollection);
+                const batch = firestoreApi.writeBatch(firestoreDatabase);
+                oldRecords.forEach(record => batch.delete(record.ref));
+                json.forEach(record => batch.set(firestoreApi.doc(remoteCollection), {
+                    cedula: String(record.cedula).trim(),
+                    nombre: String(record.nombre || '').trim(),
+                    mes: String(record.mes).trim(),
+                    concepto: String(record.concepto).trim(),
+                    monto: Number(record.monto)
+                }));
+                await batch.commit();
+                await renderAdminData();
+                showAlert(alertBox, 'Base de datos sincronizada correctamente.', 'success');
+                fileInput.value = '';
+            } catch (error) {
+                showAlert(alertBox, 'No se pudo guardar en Firestore. Revisa las reglas de Cloud Firestore.', 'error');
+            }
         };
 
         reader.readAsArrayBuffer(file);
     }
 
-    function getStoredDatabase() {
-        try {
-            const database = JSON.parse(localStorage.getItem('censer_descuentos_db') || '[]');
-            return Array.isArray(database) ? database : [];
-        } catch (error) {
-            return [];
-        }
+    async function getRemoteDatabase() {
+        const snapshot = await firestoreApi.getDocs(firestoreApi.collection(firestoreDatabase, 'descuentos'));
+        return snapshot.docs.map(record => ({id: record.id, ...record.data()}));
     }
 
-    function renderAdminData() {
+    async function renderAdminData() {
         const dataPanel = document.getElementById('admin-data');
         const tableBody = document.getElementById('admin-data-body');
         if(!dataPanel || !tableBody) return;
 
-        const database = getStoredDatabase();
+        let database;
+        try {
+            database = await getRemoteDatabase();
+        } catch (error) {
+            showAlert(document.getElementById('admin-alert'), 'No se pudieron cargar los registros de Firestore.', 'error');
+            return;
+        }
         tableBody.innerHTML = '';
         dataPanel.style.display = database.length ? 'block' : 'none';
 
@@ -395,13 +415,13 @@
             saveButton.className = 'save-record';
             saveButton.type = 'button';
             saveButton.textContent = 'Guardar';
-            saveButton.addEventListener('click', () => guardarRegistro(index, inputs));
+            saveButton.addEventListener('click', () => guardarRegistro(record.id, inputs));
 
             const deleteButton = document.createElement('button');
             deleteButton.className = 'delete-record';
             deleteButton.type = 'button';
             deleteButton.textContent = 'Borrar';
-            deleteButton.addEventListener('click', () => borrarRegistro(index));
+            deleteButton.addEventListener('click', () => borrarRegistro(record.id));
 
             actionsCell.append(saveButton, ' ', deleteButton);
             row.appendChild(actionsCell);
@@ -409,7 +429,7 @@
         });
     }
 
-    function guardarRegistro(index, inputs) {
+    async function guardarRegistro(recordId, inputs) {
         const updatedRecord = {
             cedula: inputs[0].value.trim(),
             nombre: inputs[1].value.trim(),
@@ -423,31 +443,44 @@
             return;
         }
 
-        const database = getStoredDatabase();
-        if(!database[index]) return;
-        database[index] = updatedRecord;
-        localStorage.setItem('censer_descuentos_db', JSON.stringify(database));
-        renderAdminData();
-        showAlert(document.getElementById('admin-alert'), 'Registro actualizado.', 'success');
+        try {
+            await firestoreApi.updateDoc(firestoreApi.doc(firestoreDatabase, 'descuentos', recordId), {
+                ...updatedRecord,
+                monto: Number(updatedRecord.monto)
+            });
+            await renderAdminData();
+            showAlert(document.getElementById('admin-alert'), 'Registro actualizado.', 'success');
+        } catch (error) {
+            showAlert(document.getElementById('admin-alert'), 'No se pudo actualizar el registro en Firestore.', 'error');
+        }
     }
 
-    function borrarRegistro(index) {
+    async function borrarRegistro(recordId) {
         if(!window.confirm('¿Borrar este registro?')) return;
-        const database = getStoredDatabase();
-        database.splice(index, 1);
-        localStorage.setItem('censer_descuentos_db', JSON.stringify(database));
-        renderAdminData();
-        showAlert(document.getElementById('admin-alert'), 'Registro borrado.', 'success');
+        try {
+            await firestoreApi.deleteDoc(firestoreApi.doc(firestoreDatabase, 'descuentos', recordId));
+            await renderAdminData();
+            showAlert(document.getElementById('admin-alert'), 'Registro borrado.', 'success');
+        } catch (error) {
+            showAlert(document.getElementById('admin-alert'), 'No se pudo borrar el registro en Firestore.', 'error');
+        }
     }
 
-    function borrarTodosLosRegistros() {
+    async function borrarTodosLosRegistros() {
         if(!window.confirm('¿Borrar todos los registros guardados?')) return;
-        localStorage.removeItem('censer_descuentos_db');
-        renderAdminData();
-        showAlert(document.getElementById('admin-alert'), 'Todos los registros fueron borrados.', 'success');
+        try {
+            const records = await getRemoteDatabase();
+            const batch = firestoreApi.writeBatch(firestoreDatabase);
+            records.forEach(record => batch.delete(firestoreApi.doc(firestoreDatabase, 'descuentos', record.id)));
+            await batch.commit();
+            await renderAdminData();
+            showAlert(document.getElementById('admin-alert'), 'Todos los registros fueron borrados.', 'success');
+        } catch (error) {
+            showAlert(document.getElementById('admin-alert'), 'No se pudieron borrar los registros en Firestore.', 'error');
+        }
     }
 
-    function consultarDescuentos() {
+    async function consultarDescuentos() {
         const cedulaInput = document.getElementById('cedula').value.trim();
         const alertBox = document.getElementById('empleado-alert');
         const resultadoBox = document.getElementById('resultado');
@@ -463,45 +496,35 @@
             return;
         }
 
-        const dbRaw = localStorage.getItem('censer_descuentos_db');
-        if(!dbRaw) {
-            showAlert(alertBox, 'No hay datos cargados en el sistema aún. Contacte a la administración.', 'error');
-            return;
-        }
-
-        let db;
         try {
-            db = JSON.parse(dbRaw);
-        } catch (error) {
-            showAlert(alertBox, 'La base de datos local está dañada. Contacte a la administración.', 'error');
-            return;
-        }
+            const recordsQuery = firestoreApi.query(
+                firestoreApi.collection(firestoreDatabase, 'descuentos'),
+                firestoreApi.where('cedula', '==', cedulaInput)
+            );
+            const snapshot = await firestoreApi.getDocs(recordsQuery);
+            const registros = snapshot.docs.map(record => record.data());
 
-        if(!Array.isArray(db)) {
-            showAlert(alertBox, 'La base de datos local no tiene un formato válido.', 'error');
-            return;
-        }
+            if(registros.length === 0) {
+                showAlert(alertBox, 'No se encontraron registros de descuentos para la cédula ingresada.', 'error');
+                return;
+            }
 
-        const registros = db.filter(item => String(item.cedula).trim() === cedulaInput);
+            nombreEmpleado.innerText = registros[0].nombre ? `Empleado: ${registros[0].nombre}` : `Cédula: ${cedulaInput}`;
 
-        if(registros.length === 0) {
-            showAlert(alertBox, 'No se encontraron registros de descuentos para la cédula ingresada.', 'error');
-            return;
-        }
-
-        nombreEmpleado.innerText = registros[0].nombre ? `Empleado: ${registros[0].nombre}` : `Cédula: ${cedulaInput}`;
-
-        registros.forEach(reg => {
-            const row = document.createElement('tr');
-            [reg.mes || '-', reg.concepto || '-', `$${Number(reg.monto).toLocaleString('es-CO')}`].forEach(value => {
-                const cell = document.createElement('td');
-                cell.textContent = String(value);
-                row.appendChild(cell);
+            registros.forEach(reg => {
+                const row = document.createElement('tr');
+                [reg.mes || '-', reg.concepto || '-', `$${Number(reg.monto).toLocaleString('es-CO')}`].forEach(value => {
+                    const cell = document.createElement('td');
+                    cell.textContent = String(value);
+                    row.appendChild(cell);
+                });
+                tabla.appendChild(row);
             });
-            tabla.appendChild(row);
-        });
 
-        resultadoBox.style.display = 'block';
+            resultadoBox.style.display = 'block';
+        } catch (error) {
+            showAlert(alertBox, 'No se pudieron consultar los datos compartidos. Revisa la configuración de Cloud Firestore.', 'error');
+        }
     }
 
     function showAlert(element, message, type) {
