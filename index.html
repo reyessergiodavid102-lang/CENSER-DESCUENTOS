@@ -4,84 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Censer JR S.A.S - Consulta de Descuentos</title>
-    <!-- XLSX library to process Excel/CSV files in browser -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-        import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-        import { addDoc, collection, deleteDoc, doc, getDocs, getFirestore, query, updateDoc, where, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-
-        const firebaseConfig = {
-            apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
-            authDomain: 'censer-descuentos.firebaseapp.com',
-            projectId: 'censer-descuentos',
-            storageBucket: 'censer-descuentos.firebasestorage.app',
-            messagingSenderId: '361651122880',
-            appId: '1:361651122880:web:bb7100a78dc5782015f325',
-            measurementId: 'G-B75KQ713KE'
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const database = getFirestore(app);
-        window.firestoreDatabase = database;
-        window.firestoreApi = { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where, writeBatch };
-
-        function setAdminPanel(isAuthenticated) {
-            document.getElementById('admin-login-form').style.display = isAuthenticated ? 'none' : 'block';
-            document.getElementById('admin-panel').style.display = isAuthenticated ? 'block' : 'none';
-            if(isAuthenticated) renderAdminData();
-        }
-
-        function firebaseErrorMessage(errorCode) {
-            const messages = {
-                'auth/invalid-credential': 'Correo o contraseña incorrectos.',
-                'auth/invalid-email': 'El correo no tiene un formato válido.',
-                'auth/user-not-found': 'No existe un usuario con ese correo en Firebase Authentication.',
-                'auth/wrong-password': 'La contraseña no coincide con la cuenta.',
-                'auth/user-disabled': 'Esta cuenta de administrador está deshabilitada.',
-                'auth/operation-not-allowed': 'Activa el proveedor Email/Password en Firebase Authentication.',
-                'auth/configuration-not-found': 'Firebase Authentication no está configurado. Activa Email/Password y la API Identity Toolkit en el proyecto.',
-                'auth/unauthorized-domain': 'Agrega el dominio de Render en Firebase Authentication > Settings > Authorized domains.',
-                'auth/network-request-failed': 'No hay conexión con Firebase. Comprueba la conexión e inténtalo de nuevo.',
-                'auth/too-many-requests': 'Demasiados intentos. Espere unos minutos y vuelva a intentarlo.'
-            };
-            return messages[errorCode] || `No se pudo iniciar sesión (${errorCode || 'error desconocido'}).`;
-        }
-
-        window.loginAdmin = async function() {
-            const email = document.getElementById('admin-email').value.trim();
-            const password = document.getElementById('admin-pass').value;
-            const alertBox = document.getElementById('login-alert');
-
-            if(!email || !password) {
-                showAlert(alertBox, 'Ingrese el correo y la contraseña.', 'error');
-                return;
-            }
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                showAlert(alertBox, 'Acceso autorizado.', 'success');
-            } catch (error) {
-                showAlert(alertBox, firebaseErrorMessage(error.code), 'error');
-            }
-        };
-
-        window.logoutAdmin = function() {
-            signOut(auth).catch(() => {
-                showAlert(document.getElementById('admin-alert'), 'No se pudo cerrar la sesión.', 'error');
-            });
-        };
-
-        onAuthStateChanged(auth, user => setAdminPanel(Boolean(user)));
-
-        isSupported().then(supported => {
-            if (supported) getAnalytics(app);
-        }).catch(() => {
-            // Analytics no está disponible en todos los navegadores o contextos.
-        });
-    </script>
     <style>
         :root {
             --red: #d62828;
@@ -100,12 +23,12 @@
             margin: 0;
             padding: 32px 18px;
             color: var(--ink);
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #eef7f0 0%, #ffffff 48%, #fff4ef 100%);
         }
 
         .container {
-            max-width: 940px;
+            max-width: 960px;
             margin: 0 auto;
             overflow: hidden;
             background: var(--paper);
@@ -116,74 +39,53 @@
 
         .header {
             position: relative;
-            padding: 42px 32px 34px;
+            padding: 36px 24px;
             text-align: center;
             background: radial-gradient(circle at 8% 15%, rgba(18, 132, 72, .12), transparent 27%), #fbfdfb;
             border-bottom: 1px solid var(--line);
         }
 
-        .header::after {
-            position: absolute;
-            right: 8%;
-            bottom: -9px;
-            left: 8%;
-            height: 3px;
-            content: '';
-            background: linear-gradient(90deg, var(--green), var(--red));
-            border-radius: 3px;
-        }
+        .header img { width: min(260px, 80%); height: auto; }
+        .header h1 { margin: 16px 0 6px; font-size: clamp(1.4rem, 3.5vw, 2rem); font-family: Georgia, serif; }
+        .header p { margin: 0; color: var(--muted); font-size: .95rem; }
 
-        .header img { width: min(290px, 80%); height: auto; }
-        .header h1 { margin: 22px 0 7px; color: var(--ink); font-size: clamp(1.55rem, 4vw, 2.2rem); letter-spacing: .01em; }
-        .header p { margin: 0; color: var(--muted); font-family: Arial, sans-serif; font-size: .95rem; }
-        .workspace { padding: 30px clamp(20px, 5vw, 58px) 48px; }
+        .workspace { padding: 28px clamp(18px, 4vw, 48px) 40px; }
 
-        .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 28px; padding: 6px; background: var(--wash); border-radius: 13px; }
-        .tab-btn { padding: 13px 16px; color: var(--muted); background: transparent; border: 0; border-radius: 9px; font: 700 .95rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
-        .tab-btn:hover { color: var(--red); }
-        .tab-btn.active { color: var(--paper); background: var(--red); box-shadow: 0 6px 14px rgba(214, 40, 40, .2); }
-        .tab-content { display: none; animation: appear .25s ease-out; }
-        .tab-content.active { display: block; }
+        .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; padding: 6px; background: var(--wash); border-radius: 12px; }
+        .tab-btn { padding: 12px 16px; color: var(--muted); background: transparent; border: 0; border-radius: 8px; font: 700 .95rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
+        .tab-btn.active { color: var(--paper); background: var(--red); box-shadow: 0 4px 12px rgba(214, 40, 40, .2); }
 
-        .intro { margin-bottom: 26px; }
-        .intro h2 { margin: 0 0 8px; font-size: 1.7rem; }
-        .intro p, .admin-copy { margin: 0; color: var(--muted); font-family: Arial, sans-serif; line-height: 1.6; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 9px; color: var(--ink); font: 700 .9rem Arial, sans-serif; }
-        input[type='text'], input[type='email'], input[type='password'], input[type='file'] { width: 100%; padding: 14px 15px; color: var(--ink); background: #fbfdfb; border: 1px solid #cbdad0; border-radius: 10px; font: 1rem Arial, sans-serif; transition: border-color .2s, box-shadow .2s; }
-        input:focus { outline: 0; border-color: var(--green); box-shadow: 0 0 0 4px rgba(18, 132, 72, .11); }
-        button.btn { width: 100%; padding: 14px 20px; color: white; background: var(--green); border: 0; border-radius: 10px; font: 700 1rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
-        button.btn:hover { background: #0c6c3a; transform: translateY(-1px); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: appear .25s ease-out; }
 
-        .result-box, #admin-panel { margin-top: 28px; padding: 24px; background: #fbfdfb; border: 1px solid var(--line); border-radius: 14px; }
-        .result-box h3 { margin: 0 0 18px; font-size: 1.2rem; }
-        #admin-panel h3 { margin-top: 0; font-size: 1.35rem; }
-        #admin-panel ul { padding-left: 20px; color: var(--muted); font-family: Arial, sans-serif; line-height: 1.8; }
-        table { width: 100%; margin-top: 15px; border-collapse: collapse; font-family: Arial, sans-serif; }
-        th, td { padding: 13px 12px; text-align: left; border-bottom: 1px solid var(--line); }
-        th { color: #fff; background: var(--red); font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
-        tr:last-child td { border-bottom: 0; }
-        .alert { display: none; margin-top: 15px; padding: 13px 15px; border-radius: 10px; font-family: Arial, sans-serif; line-height: 1.4; }
+        .form-group { margin-bottom: 18px; }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+
+        label { display: block; margin-bottom: 6px; color: var(--ink); font-weight: 700; font-size: .88rem; }
+        input, select { width: 100%; padding: 12px 14px; color: var(--ink); background: #fbfdfb; border: 1px solid #cbdad0; border-radius: 8px; font-size: .95rem; transition: border-color .2s; }
+        input:focus, select:focus { outline: 0; border-color: var(--green); box-shadow: 0 0 0 3px rgba(18, 132, 72, .12); }
+
+        .btn { width: 100%; padding: 12px 18px; color: white; background: var(--green); border: 0; border-radius: 8px; font: 700 1rem Arial, sans-serif; cursor: pointer; transition: background .2s; }
+        .btn:hover { background: #0c6c3a; }
+        .btn-secondary { background: var(--muted); margin-top: 8px; }
+        .btn-danger { background: var(--red); }
+
+        .result-box, .admin-box { margin-top: 24px; padding: 20px; background: #fbfdfb; border: 1px solid var(--line); border-radius: 12px; }
+        
+        table { width: 100%; margin-top: 12px; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: .9rem; }
+        th { color: #fff; background: var(--red); text-transform: uppercase; letter-spacing: .03em; font-size: .8rem; }
+
+        .alert { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: .9rem; }
         .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
         .alert-success { color: #14623b; background: #eef9f1; border: 1px solid #bfdfc8; }
-        .admin-data { margin-top: 28px; overflow-x: auto; }
-        .admin-data h3 { margin: 0 0 12px; font-size: 1.2rem; }
-        .admin-data table { min-width: 720px; margin-top: 0; }
-        .admin-data input { width: 100%; min-width: 100px; padding: 9px; color: var(--ink); background: #fff; border: 1px solid #cbdad0; border-radius: 7px; font: .9rem Arial, sans-serif; }
-        .admin-data button { padding: 8px 10px; color: #fff; border: 0; border-radius: 7px; font: 700 .8rem Arial, sans-serif; cursor: pointer; }
-        .save-record { background: var(--green); }
-        .delete-record { background: var(--red); }
-        .delete-all { margin-top: 12px; background: var(--red); }
-        @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        @keyframes appear { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 600px) {
-            body { padding: 12px; }
-            .header { padding: 30px 18px 26px; }
-            .workspace { padding: 24px 16px 32px; }
-            .tabs { grid-template-columns: 1fr; }
-            .result-box, #admin-panel { padding: 16px; }
+            body { padding: 10px; }
+            .workspace { padding: 18px 12px; }
             table { display: block; overflow-x: auto; white-space: nowrap; }
-            th, td { padding: 11px 9px; }
         }
     </style>
 </head>
@@ -191,349 +93,258 @@
 
 <div class="container">
     <div class="header">
-                <img src="logo.svg" alt="Censer JR S.A.S">
-                <h1>Consulta de Descuentos Nominativos</h1>
-                <p>Acceso simple, claro y seguro a tu información laboral</p>
+        <img src="logo.svg" alt="Censer JR S.A.S">
+        <h1>Consulta de Descuentos Nominativos</h1>
+        <p>Acceso seguro e instantáneo a tu información laboral</p>
     </div>
 
-        <div class="workspace">
-            <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('empleado')">Consulta Empleado</button>
-        <button class="tab-btn" onclick="switchTab('admin')">Administrador</button>
-            </div>
-
-    <!-- Módulo Empleado -->
-    <div id="empleado" class="tab-content active">
-        <div class="intro">
-            <h2>Consulta tu información</h2>
-            <p>Ingresa tu número de cédula para revisar los descuentos registrados.</p>
+    <div class="workspace">
+        <div class="tabs">
+            <button class="tab-btn active" id="btn-tab-empleado">Consulta Empleado</button>
+            <button class="tab-btn" id="btn-tab-admin">Administrador</button>
         </div>
-        <div class="form-group">
-            <label for="cedula">Ingrese su número de Cédula:</label>
-            <input type="text" id="cedula" placeholder="Ej: 123456789" inputmode="numeric" maxlength="20" autocomplete="off">
-        </div>
-        <button class="btn" onclick="consultarDescuentos()">Consultar</button>
 
-        <div id="empleado-alert" class="alert alert-error"></div>
-
-        <div id="resultado" class="result-box">
-            <h3 id="nombre-empleado"></h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Mes</th>
-                        <th>Concepto de Descuento</th>
-                        <th>Monto</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-descuentos">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Módulo Administrador -->
-    <div id="admin" class="tab-content">
-        <div id="admin-login-form">
+        <!-- Módulo Empleado -->
+        <div id="tab-empleado" class="tab-content active">
             <div class="form-group">
-                <label for="admin-email">Correo del administrador:</label>
-                <input type="email" id="admin-email" value="censerjrsas@hotmail.com" autocomplete="username">
+                <label for="cedula">Número de Cédula:</label>
+                <input type="text" id="cedula" placeholder="Ej: 123456789" inputmode="numeric" autocomplete="off">
             </div>
-            <div class="form-group">
-                <label for="admin-pass">Contraseña de Administrador:</label>
-                <input type="password" id="admin-pass" placeholder="Ingrese la contraseña" autocomplete="current-password">
-            </div>
-            <button class="btn" onclick="loginAdmin()">Ingresar</button>
-            <div id="login-alert" class="alert alert-error"></div>
-        </div>
+            <button class="btn" id="btn-consultar">Consultar Registros</button>
+            <div id="empleado-alert" class="alert"></div>
 
-        <div id="admin-panel" style="display: none;">
-            <h3>Cargar Base de Datos (Excel / CSV)</h3>
-            <p>Sube un archivo `.xlsx` o `.csv` que contenga las siguientes columnas exactamente:</p>
-            <ul>
-                <li><strong>cedula</strong></li>
-                <li><strong>nombre</strong></li>
-                <li><strong>mes</strong></li>
-                <li><strong>concepto</strong></li>
-                <li><strong>monto</strong></li>
-            </ul>
+            <div id="resultado" class="result-box" style="display: none;">
+                <h3 id="nombre-empleado"></h3>
+                
+                <!-- Filtros para Empleado -->
+                <div class="filter-grid">
+                    <div>
+                        <label for="filter-mes">Filtrar por Mes:</label>
+                        <select id="filter-mes">
+                            <option value="">Todos los meses</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sort-monto">Ordenar por Monto:</label>
+                        <select id="sort-monto">
+                            <option value="none">Sin orden específico</option>
+                            <option value="desc">Mayor a Menor</option>
+                            <option value="asc">Menor a Mayor</option>
+                        </select>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
-            </div>
-            <button class="btn" onclick="procesarArchivo()">Cargar y Guardar Datos</button>
-            <button class="btn" type="button" onclick="logoutAdmin()">Cerrar sesión</button>
-
-            <div id="admin-alert" class="alert"></div>
-
-            <div id="admin-data" class="admin-data" style="display: none;">
-                <h3>Administrar registros guardados</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Cédula</th>
-                            <th>Nombre</th>
                             <th>Mes</th>
                             <th>Concepto</th>
                             <th>Monto</th>
-                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="admin-data-body"></tbody>
+                    <tbody id="tabla-descuentos"></tbody>
                 </table>
-                <button class="btn delete-all" type="button" onclick="borrarTodosLosRegistros()">Borrar todos los registros</button>
+            </div>
+        </div>
+
+        <!-- Módulo Administrador -->
+        <div id="tab-admin" class="tab-content">
+            <div id="admin-login-form">
+                <div class="form-group">
+                    <label for="admin-email">Correo Electrónico:</label>
+                    <input type="email" id="admin-email" value="censerjrsas@hotmail.com">
+                </div>
+                <div class="form-group">
+                    <label for="admin-pass">Contraseña:</label>
+                    <input type="password" id="admin-pass" placeholder="••••••••">
+                </div>
+                <button class="btn" id="btn-login">Ingresar al Panel</button>
+                <div id="login-alert" class="alert"></div>
+            </div>
+
+            <div id="admin-panel" class="admin-box" style="display: none;">
+                <h3>Cargar Base de Datos</h3>
+                <p style="color: var(--muted); font-size: 0.9rem;">Suba un archivo (.xlsx o .csv) con las columnas: <strong>cedula, nombre, mes, concepto, monto</strong></p>
+                
+                <div class="form-group">
+                    <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
+                </div>
+                <button class="btn" id="btn-procesar">Cargar Datos</button>
+                <button class="btn btn-secondary" id="btn-logout">Cerrar Sesión</button>
+                <div id="admin-alert" class="alert"></div>
             </div>
         </div>
     </div>
-    </div>
 </div>
 
-<script>
-    // Clave temporal para panel de administración
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    const REQUIRED_COLUMNS = ['cedula', 'nombre', 'mes', 'concepto', 'monto'];
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getFirestore, collection, getDocs, query, where, writeBatch, doc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
-    function switchTab(tab) {
+    const firebaseConfig = {
+        apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
+        authDomain: 'censer-descuentos.firebaseapp.com',
+        projectId: 'censer-descuentos',
+        storageBucket: 'censer-descuentos.firebasestorage.app',
+        messagingSenderId: '361651122880',
+        appId: '1:361651122880:web:bb7100a78dc5782015f325'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let rawData = [];
+
+    // --- Control de Interfaz ---
+    const switchTab = (activeTab) => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         
-        if(tab === 'empleado') {
-            document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            document.getElementById('empleado').classList.add('active');
+        if (activeTab === 'empleado') {
+            document.getElementById('btn-tab-empleado').classList.add('active');
+            document.getElementById('tab-empleado').classList.add('active');
         } else {
-            document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            document.getElementById('admin').classList.add('active');
+            document.getElementById('btn-tab-admin').classList.add('active');
+            document.getElementById('tab-admin').classList.add('active');
         }
-    }
+    };
 
-    function procesarArchivo() {
+    const showAlert = (elementId, message, type) => {
+        const el = document.getElementById(elementId);
+        el.className = `alert alert-${type}`;
+        el.textContent = message;
+        el.style.display = 'block';
+    };
+
+    // --- Lógica de Negocio y Filtros ---
+    const renderTable = () => {
+        const selectedMes = document.getElementById('filter-mes').value;
+        const sortOrder = document.getElementById('sort-monto').value;
+        const tbody = document.getElementById('tabla-descuentos');
+
+        let filtered = rawData.filter(item => !selectedMes || item.mes === selectedMes);
+
+        if (sortOrder === 'asc') filtered.sort((a, b) => a.monto - b.monto);
+        if (sortOrder === 'desc') filtered.sort((a, b) => b.monto - a.monto);
+
+        tbody.innerHTML = filtered.map(reg => `
+            <tr>
+                <td>${reg.mes || '-'}</td>
+                <td>${reg.concepto || '-'}</td>
+                <td>$${Number(reg.monto).toLocaleString('es-CO')}</td>
+            </tr>
+        `).join('');
+    };
+
+    const setupFilters = () => {
+        const selectMes = document.getElementById('filter-mes');
+        const meses = [...new Set(rawData.map(r => r.mes))].filter(Boolean);
+        
+        selectMes.innerHTML = '<option value="">Todos los meses</option>' + 
+            meses.map(m => `<option value="${m}">${m}</option>`).join('');
+
+        renderTable();
+    };
+
+    const consultarDescuentos = async () => {
+        const cedula = document.getElementById('cedula').value.trim();
+        const alertId = 'empleado-alert';
+        
+        document.getElementById(alertId).style.display = 'none';
+        document.getElementById('resultado').style.display = 'none';
+
+        if (!cedula) return showAlert(alertId, 'Ingrese un número de cédula.', 'error');
+
+        try {
+            const q = query(collection(db, 'descuentos'), where('cedula', '==', cedula));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                return showAlert(alertId, 'No se encontraron registros asociadas a la cédula.', 'error');
+            }
+
+            rawData = snapshot.docs.map(d => d.data());
+            document.getElementById('nombre-empleado').textContent = rawData[0].nombre ? `Empleado: ${rawData[0].nombre}` : `Cédula: ${cedula}`;
+            
+            setupFilters();
+            document.getElementById('resultado').style.display = 'block';
+        } catch (err) {
+            showAlert(alertId, 'Error de conexión. Verifique su red o las reglas de acceso.', 'error');
+        }
+    };
+
+    // --- Administración y Carga de Archivos ---
+    const procesarArchivo = async () => {
         const fileInput = document.getElementById('excel-file');
-        const alertBox = document.getElementById('admin-alert');
         const file = fileInput.files[0];
+        const alertId = 'admin-alert';
 
-        if(!file) {
-            showAlert(alertBox, 'Por favor seleccione un archivo.', 'error');
-            return;
-        }
-
-        if(file.size > MAX_FILE_SIZE) {
-            showAlert(alertBox, 'El archivo supera el límite permitido de 10 MB.', 'error');
-            return;
-        }
+        if (!file) return showAlert(alertId, 'Seleccione un archivo.', 'error');
 
         const reader = new FileReader();
-        reader.onload = async function(e) {
-            let json;
+        reader.onload = async (e) => {
             try {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                json = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
-            } catch (error) {
-                showAlert(alertBox, 'No se pudo leer el archivo seleccionado.', 'error');
-                return;
-            }
+                const workbook = XLSX.read(data, { type: 'array' });
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
 
-            if(json.length === 0) {
-                showAlert(alertBox, 'El archivo está vacío.', 'error');
-                return;
-            }
+                if (!json.length) return showAlert(alertId, 'El archivo está vacío.', 'error');
 
-            // Validar que contenga campos obligatorios
-            const columns = Object.keys(json[0]);
-            if(REQUIRED_COLUMNS.some(column => !columns.includes(column))) {
-                showAlert(alertBox, 'Formato inválido. Debe tener columnas: cedula, nombre, mes, concepto, monto.', 'error');
-                return;
-            }
-
-            if(json.some(row => !String(row.cedula).trim() || !String(row.mes).trim() || !String(row.concepto).trim() || !Number.isFinite(Number(row.monto)))) {
-                showAlert(alertBox, 'Hay registros incompletos o con un monto inválido.', 'error');
-                return;
-            }
-
-            try {
-                const remoteCollection = firestoreApi.collection(firestoreDatabase, 'descuentos');
-                const oldRecords = await firestoreApi.getDocs(remoteCollection);
-                const batch = firestoreApi.writeBatch(firestoreDatabase);
-                oldRecords.forEach(record => batch.delete(record.ref));
-                json.forEach(record => batch.set(firestoreApi.doc(remoteCollection), {
-                    cedula: String(record.cedula).trim(),
-                    nombre: String(record.nombre || '').trim(),
-                    mes: String(record.mes).trim(),
-                    concepto: String(record.concepto).trim(),
-                    monto: Number(record.monto)
-                }));
-                await batch.commit();
-                await renderAdminData();
-                showAlert(alertBox, 'Base de datos sincronizada correctamente.', 'success');
-                fileInput.value = '';
-            } catch (error) {
-                showAlert(alertBox, 'No se pudo guardar en Firestore. Revisa las reglas de Cloud Firestore.', 'error');
-            }
-        };
-
-        reader.readAsArrayBuffer(file);
-    }
-
-    async function getRemoteDatabase() {
-        const snapshot = await firestoreApi.getDocs(firestoreApi.collection(firestoreDatabase, 'descuentos'));
-        return snapshot.docs.map(record => ({id: record.id, ...record.data()}));
-    }
-
-    async function renderAdminData() {
-        const dataPanel = document.getElementById('admin-data');
-        const tableBody = document.getElementById('admin-data-body');
-        if(!dataPanel || !tableBody) return;
-
-        let database;
-        try {
-            database = await getRemoteDatabase();
-        } catch (error) {
-            showAlert(document.getElementById('admin-alert'), 'No se pudieron cargar los registros de Firestore.', 'error');
-            return;
-        }
-        tableBody.innerHTML = '';
-        dataPanel.style.display = database.length ? 'block' : 'none';
-
-        database.forEach((record, index) => {
-            const row = document.createElement('tr');
-            const fields = ['cedula', 'nombre', 'mes', 'concepto', 'monto'];
-            const inputs = fields.map(field => {
-                const cell = document.createElement('td');
-                const input = document.createElement('input');
-                input.value = record[field] ?? '';
-                input.type = field === 'monto' ? 'number' : 'text';
-                if(field === 'monto') input.step = 'any';
-                cell.appendChild(input);
-                row.appendChild(cell);
-                return input;
-            });
-
-            const actionsCell = document.createElement('td');
-            const saveButton = document.createElement('button');
-            saveButton.className = 'save-record';
-            saveButton.type = 'button';
-            saveButton.textContent = 'Guardar';
-            saveButton.addEventListener('click', () => guardarRegistro(record.id, inputs));
-
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'delete-record';
-            deleteButton.type = 'button';
-            deleteButton.textContent = 'Borrar';
-            deleteButton.addEventListener('click', () => borrarRegistro(record.id));
-
-            actionsCell.append(saveButton, ' ', deleteButton);
-            row.appendChild(actionsCell);
-            tableBody.appendChild(row);
-        });
-    }
-
-    async function guardarRegistro(recordId, inputs) {
-        const updatedRecord = {
-            cedula: inputs[0].value.trim(),
-            nombre: inputs[1].value.trim(),
-            mes: inputs[2].value.trim(),
-            concepto: inputs[3].value.trim(),
-            monto: inputs[4].value
-        };
-
-        if(!updatedRecord.cedula || !updatedRecord.mes || !updatedRecord.concepto || !Number.isFinite(Number(updatedRecord.monto))) {
-            showAlert(document.getElementById('admin-alert'), 'Completa cédula, mes, concepto y un monto válido.', 'error');
-            return;
-        }
-
-        try {
-            await firestoreApi.updateDoc(firestoreApi.doc(firestoreDatabase, 'descuentos', recordId), {
-                ...updatedRecord,
-                monto: Number(updatedRecord.monto)
-            });
-            await renderAdminData();
-            showAlert(document.getElementById('admin-alert'), 'Registro actualizado.', 'success');
-        } catch (error) {
-            showAlert(document.getElementById('admin-alert'), 'No se pudo actualizar el registro en Firestore.', 'error');
-        }
-    }
-
-    async function borrarRegistro(recordId) {
-        if(!window.confirm('¿Borrar este registro?')) return;
-        try {
-            await firestoreApi.deleteDoc(firestoreApi.doc(firestoreDatabase, 'descuentos', recordId));
-            await renderAdminData();
-            showAlert(document.getElementById('admin-alert'), 'Registro borrado.', 'success');
-        } catch (error) {
-            showAlert(document.getElementById('admin-alert'), 'No se pudo borrar el registro en Firestore.', 'error');
-        }
-    }
-
-    async function borrarTodosLosRegistros() {
-        if(!window.confirm('¿Borrar todos los registros guardados?')) return;
-        try {
-            const records = await getRemoteDatabase();
-            const batch = firestoreApi.writeBatch(firestoreDatabase);
-            records.forEach(record => batch.delete(firestoreApi.doc(firestoreDatabase, 'descuentos', record.id)));
-            await batch.commit();
-            await renderAdminData();
-            showAlert(document.getElementById('admin-alert'), 'Todos los registros fueron borrados.', 'success');
-        } catch (error) {
-            showAlert(document.getElementById('admin-alert'), 'No se pudieron borrar los registros en Firestore.', 'error');
-        }
-    }
-
-    async function consultarDescuentos() {
-        const cedulaInput = document.getElementById('cedula').value.trim();
-        const alertBox = document.getElementById('empleado-alert');
-        const resultadoBox = document.getElementById('resultado');
-        const tabla = document.getElementById('tabla-descuentos');
-        const nombreEmpleado = document.getElementById('nombre-empleado');
-
-        alertBox.style.display = 'none';
-        resultadoBox.style.display = 'none';
-        tabla.innerHTML = '';
-
-        if(!cedulaInput) {
-            showAlert(alertBox, 'Por favor ingrese un número de cédula.', 'error');
-            return;
-        }
-
-        try {
-            const recordsQuery = firestoreApi.query(
-                firestoreApi.collection(firestoreDatabase, 'descuentos'),
-                firestoreApi.where('cedula', '==', cedulaInput)
-            );
-            const snapshot = await firestoreApi.getDocs(recordsQuery);
-            const registros = snapshot.docs.map(record => record.data());
-
-            if(registros.length === 0) {
-                showAlert(alertBox, 'No se encontraron registros de descuentos para la cédula ingresada.', 'error');
-                return;
-            }
-
-            nombreEmpleado.innerText = registros[0].nombre ? `Empleado: ${registros[0].nombre}` : `Cédula: ${cedulaInput}`;
-
-            registros.forEach(reg => {
-                const row = document.createElement('tr');
-                [reg.mes || '-', reg.concepto || '-', `$${Number(reg.monto).toLocaleString('es-CO')}`].forEach(value => {
-                    const cell = document.createElement('td');
-                    cell.textContent = String(value);
-                    row.appendChild(cell);
+                // Sobrescribir colección
+                const oldDocs = await getDocs(collection(db, 'descuentos'));
+                const batch = writeBatch(db);
+                
+                oldDocs.forEach(d => batch.delete(d.ref));
+                json.forEach(row => {
+                    if (row.cedula && row.mes) {
+                        const newRef = doc(collection(db, 'descuentos'));
+                        batch.set(newRef, {
+                            cedula: String(row.cedula).trim(),
+                            nombre: String(row.nombre || '').trim(),
+                            mes: String(row.mes).trim(),
+                            concepto: String(row.concepto || '').trim(),
+                            monto: Number(row.monto) || 0
+                        });
+                    }
                 });
-                tabla.appendChild(row);
-            });
 
-            resultadoBox.style.display = 'block';
-        } catch (error) {
-            showAlert(alertBox, 'No se pudieron consultar los datos compartidos. Revisa la configuración de Cloud Firestore.', 'error');
+                await batch.commit();
+                showAlert(alertId, 'Base de datos cargada exitosamente.', 'success');
+                fileInput.value = '';
+            } catch (err) {
+                showAlert(alertId, 'Error al procesar el archivo o guardar en base de datos.', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
+    // --- Event Listeners & Auth Handler ---
+    document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
+    document.getElementById('btn-tab-admin').addEventListener('click', () => switchTab('admin'));
+    document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
+    document.getElementById('filter-mes').addEventListener('change', renderTable);
+    document.getElementById('sort-monto').addEventListener('change', renderTable);
+    document.getElementById('btn-procesar').addEventListener('click', procesarArchivo);
+
+    document.getElementById('btn-login').addEventListener('click', async () => {
+        const email = document.getElementById('admin-email').value;
+        const pass = document.getElementById('admin-pass').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            showAlert('login-alert', 'Credenciales inválidas.', 'error');
         }
-    }
+    });
 
-    function showAlert(element, message, type) {
-        element.className = `alert alert-${type}`;
-        element.innerText = message;
-        element.style.display = 'block';
-    }
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, user => {
+        document.getElementById('admin-login-form').style.display = user ? 'none' : 'block';
+        document.getElementById('admin-panel').style.display = user ? 'block' : 'none';
+    });
 </script>
-
 </body>
 </html>
-
+    
