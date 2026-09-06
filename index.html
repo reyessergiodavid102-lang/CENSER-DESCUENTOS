@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Censer JR S.A.S - Consulta de Descuentos</title>
+    <!-- XLSX library to process Excel/CSV files in browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --red: #d62828;
+            --green: #128448;
+            --ink: #17211b;
+            --muted: #65736b;
+            --line: #dce7df;
+            --paper: #ffffff;
+            --wash: #f2f7f2;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 32px 18px;
+            color: var(--ink);
+            font-family: Georgia, 'Times New Roman', serif;
+            background: linear-gradient(135deg, #eef7f0 0%, #ffffff 48%, #fff4ef 100%);
+        }
+
+        .container {
+            max-width: 940px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: var(--paper);
+            border: 1px solid rgba(18, 132, 72, .15);
+            border-radius: 22px;
+            box-shadow: 0 20px 60px rgba(32, 67, 45, .12);
+        }
+
+        .header {
+            position: relative;
+            padding: 42px 32px 34px;
+            text-align: center;
+            background: radial-gradient(circle at 8% 15%, rgba(18, 132, 72, .12), transparent 27%), #fbfdfb;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .header::after {
+            position: absolute;
+            right: 8%;
+            bottom: -9px;
+            left: 8%;
+            height: 3px;
+            content: '';
+            background: linear-gradient(90deg, var(--green), var(--red));
+            border-radius: 3px;
+        }
+
+        .header img { width: min(290px, 80%); height: auto; }
+        .header h1 { margin: 22px 0 7px; color: var(--ink); font-size: clamp(1.55rem, 4vw, 2.2rem); letter-spacing: .01em; }
+        .header p { margin: 0; color: var(--muted); font-family: Arial, sans-serif; font-size: .95rem; }
+        .workspace { padding: 30px clamp(20px, 5vw, 58px) 48px; }
+
+        .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 28px; padding: 6px; background: var(--wash); border-radius: 13px; }
+        .tab-btn { padding: 13px 16px; color: var(--muted); background: transparent; border: 0; border-radius: 9px; font: 700 .95rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
+        .tab-btn:hover { color: var(--red); }
+        .tab-btn.active { color: var(--paper); background: var(--red); box-shadow: 0 6px 14px rgba(214, 40, 40, .2); }
+        .tab-content { display: none; animation: appear .25s ease-out; }
+        .tab-content.active { display: block; }
+
+        .intro { margin-bottom: 26px; }
+        .intro h2 { margin: 0 0 8px; font-size: 1.7rem; }
+        .intro p, .admin-copy { margin: 0; color: var(--muted); font-family: Arial, sans-serif; line-height: 1.6; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 9px; color: var(--ink); font: 700 .9rem Arial, sans-serif; }
+        input[type='text'], input[type='password'], input[type='file'] { width: 100%; padding: 14px 15px; color: var(--ink); background: #fbfdfb; border: 1px solid #cbdad0; border-radius: 10px; font: 1rem Arial, sans-serif; transition: border-color .2s, box-shadow .2s; }
+        input:focus { outline: 0; border-color: var(--green); box-shadow: 0 0 0 4px rgba(18, 132, 72, .11); }
+        button.btn { width: 100%; padding: 14px 20px; color: white; background: var(--green); border: 0; border-radius: 10px; font: 700 1rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
+        button.btn:hover { background: #0c6c3a; transform: translateY(-1px); }
+
+        .result-box, #admin-panel { margin-top: 28px; padding: 24px; background: #fbfdfb; border: 1px solid var(--line); border-radius: 14px; }
+        .result-box h3 { margin: 0 0 18px; font-size: 1.2rem; }
+        #admin-panel h3 { margin-top: 0; font-size: 1.35rem; }
+        #admin-panel ul { padding-left: 20px; color: var(--muted); font-family: Arial, sans-serif; line-height: 1.8; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; font-family: Arial, sans-serif; }
+        th, td { padding: 13px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+        th { color: #fff; background: var(--red); font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+        tr:last-child td { border-bottom: 0; }
+        .alert { display: none; margin-top: 15px; padding: 13px 15px; border-radius: 10px; font-family: Arial, sans-serif; line-height: 1.4; }
+        .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
+        .alert-success { color: #14623b; background: #eef9f1; border: 1px solid #bfdfc8; }
+        @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            .header { padding: 30px 18px 26px; }
+            .workspace { padding: 24px 16px 32px; }
+            .tabs { grid-template-columns: 1fr; }
+            .result-box, #admin-panel { padding: 16px; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            th, td { padding: 11px 9px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+                <img src="logo.svg" alt="Censer JR S.A.S">
+                <h1>Consulta de Descuentos Nominativos</h1>
+                <p>Acceso simple, claro y seguro a tu información laboral</p>
+    </div>
+
+        <div class="workspace">
+            <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('empleado')">Consulta Empleado</button>
+        <button class="tab-btn" onclick="switchTab('admin')">Administrador</button>
+            </div>
+
+    <!-- Módulo Empleado -->
+    <div id="empleado" class="tab-content active">
+        <div class="intro">
+            <h2>Consulta tu información</h2>
+            <p>Ingresa tu número de cédula para revisar los descuentos registrados.</p>
+        </div>
+        <div class="form-group">
+            <label for="cedula">Ingrese su número de Cédula:</label>
+            <input type="text" id="cedula" placeholder="Ej: 123456789">
+        </div>
+        <button class="btn" onclick="consultarDescuentos()">Consultar</button>
+
+        <div id="empleado-alert" class="alert alert-error"></div>
+
+        <div id="resultado" class="result-box">
+            <h3 id="nombre-empleado"></h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mes</th>
+                        <th>Concepto de Descuento</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-descuentos">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Módulo Administrador -->
+    <div id="admin" class="tab-content">
+        <div id="admin-login-form">
+            <div class="form-group">
+                <label for="admin-pass">Contraseña de Administrador:</label>
+                <input type="password" id="admin-pass" placeholder="Ingrese la clave">
+            </div>
+            <button class="btn" onclick="loginAdmin()">Ingresar</button>
+        </div>
+
+        <div id="admin-panel" style="display: none;">
+            <h3>Cargar Base de Datos (Excel / CSV)</h3>
+            <p>Sube un archivo `.xlsx` o `.csv` que contenga las siguientes columnas exactamente:</p>
+            <ul>
+                <li><strong>cedula</strong></li>
+                <li><strong>nombre</strong></li>
+                <li><strong>mes</strong></li>
+                <li><strong>concepto</strong></li>
+                <li><strong>monto</strong></li>
+            </ul>
+
+            <div class="form-group">
+                <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
+            </div>
+            <button class="btn" onclick="procesarArchivo()">Cargar y Guardar Datos</button>
+
+            <div id="admin-alert" class="alert"></div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<script>
+    // Clave temporal para panel de administración
+    const ADMIN_PASSWORD = "admin123censer";
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        if(tab === 'empleado') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.getElementById('empleado').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('admin').classList.add('active');
+        }
+    }
+
+    function loginAdmin() {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === ADMIN_PASSWORD) {
+            document.getElementById('admin-login-form').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+        } else {
+            alert('Contraseña incorrecta');
+        }
+    }
+
+    function procesarArchivo() {
+        const fileInput = document.getElementById('excel-file');
+        const alertBox = document.getElementById('admin-alert');
+        const file = fileInput.files[0];
+
+        if(!file) {
+            showAlert(alertBox, 'Por favor seleccione un archivo.', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            if(json.length === 0) {
+                showAlert(alertBox, 'El archivo está vacío.', 'error');
+                return;
+            }
+
+            // Validar que contenga campos obligatorios
+            const sample = json[0];
+            if(!sample.cedula || !sample.concepto || !sample.monto || !sample.mes) {
+                showAlert(alertBox, 'Formato inválido. Debe tener columnas: cedula, nombre, mes, concepto, monto.', 'error');
+                return;
+            }
+
+            // Guardar en el almacenamiento local del navegador
+            localStorage.setItem('censer_descuentos_db', JSON.stringify(json));
+            showAlert(alertBox, 'Base de datos cargada y guardada exitosamente.', 'success');
+            fileInput.value = '';
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    function consultarDescuentos() {
+        const cedulaInput = document.getElementById('cedula').value.trim();
+        const alertBox = document.getElementById('empleado-alert');
+        const resultadoBox = document.getElementById('resultado');
+        const tabla = document.getElementById('tabla-descuentos');
+        const nombreEmpleado = document.getElementById('nombre-empleado');
+
+        alertBox.style.display = 'none';
+        resultadoBox.style.display = 'none';
+        tabla.innerHTML = '';
+
+        if(!cedulaInput) {
+            showAlert(alertBox, 'Por favor ingrese un número de cédula.', 'error');
+            return;
+        }
+
+        const dbRaw = localStorage.getItem('censer_descuentos_db');
+        if(!dbRaw) {
+            showAlert(alertBox, 'No hay datos cargados en el sistema aún. Contacte a la administración.', 'error');
+            return;
+        }
+
+        const db = JSON.parse(dbRaw);
+        const registros = db.filter(item => String(item.cedula).trim() === cedulaInput);
+
+        if(registros.length === 0) {
+            showAlert(alertBox, 'No se encontraron registros de descuentos para la cédula ingresada.', 'error');
+            return;
+        }
+
+        nombreEmpleado.innerText = registros[0].nombre ? `Empleado: ${registros[0].nombre}` : `Cédula: ${cedulaInput}`;
+
+        registros.forEach(reg => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${reg.mes || '-'}</td>
+                <td>${reg.concepto || '-'}</td>
+                <td>$${Number(reg.monto).toLocaleString('es-CO')}</td>
+            `;
+            tabla.appendChild(row);
+        });
+
+        resultadoBox.style.display = 'block';
+    }
+
+    function showAlert(element, message, type) {
+        element.className = `alert alert-${type}`;
+        element.innerText = message;
+        element.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

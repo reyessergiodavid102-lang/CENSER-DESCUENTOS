@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 250" role="img" aria-labelledby="title desc">
+  <title id="title">Censer JR S.A.S</title>
+  <desc id="desc">Logo con una palma verde y el texto Censer JR S.A.S en rojo</desc>
+  <g fill="#159447">
+    <path d="M107 174C105 129 103 84 101 37h17c-2 47-3 92-1 137z"/>
+    <path d="M111 47C76 31 42 32 9 49c28 2 54 11 82 29-29-3-57 5-82 23 37-4 67 3 96 20z"/>
+    <path d="M113 55c22-36 49-49 80-48-22 15-40 31-58 54z"/>
+    <path d="M117 69c34-24 63-27 90-18-28 8-52 19-77 37z"/>
+    <path d="M107 70C79 45 53 36 26 35c18 16 34 32 51 56z"/>
+    <path d="M103 96C74 81 44 80 17 90c26 4 51 13 78 28z"/>
+  </g>
+  <path d="M278 54c-48-30-99-2-116 48-17 48 7 89 54 89 30 0 53-15 69-39-24 14-44 18-58 12-29-12-30-47-14-72 15-24 41-37 65-24z" fill="#d92828"/>
+  <text x="280" y="127" fill="#d92828" font-family="Georgia,serif" font-size="72" font-style="italic" font-weight="bold">enser</text>
+  <text x="323" y="188" fill="#d92828" font-family="Arial,sans-serif" font-size="39" font-weight="800" letter-spacing="1">JR S.A.S</text>
+</svg>
