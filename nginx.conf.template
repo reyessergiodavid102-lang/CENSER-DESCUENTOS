@@ -6,6 +6,6 @@ server {
     index index.html;
 
     location / {
-        index index.html;
+        try_files $uri $uri/ /index.html;
     }
 }
