@@ -9,6 +9,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
         import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 
         const firebaseConfig = {
             apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
@@ -21,6 +22,50 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        function setAdminPanel(isAuthenticated) {
+            document.getElementById('admin-login-form').style.display = isAuthenticated ? 'none' : 'block';
+            document.getElementById('admin-panel').style.display = isAuthenticated ? 'block' : 'none';
+        }
+
+        function firebaseErrorMessage(errorCode) {
+            const messages = {
+                'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+                'auth/invalid-email': 'El correo no tiene un formato válido.',
+                'auth/user-disabled': 'Esta cuenta de administrador está deshabilitada.',
+                'auth/operation-not-allowed': 'Activa el proveedor Email/Password en Firebase Authentication.',
+                'auth/too-many-requests': 'Demasiados intentos. Espere unos minutos y vuelva a intentarlo.'
+            };
+            return messages[errorCode] || 'No se pudo iniciar sesión. Intente nuevamente.';
+        }
+
+        window.loginAdmin = async function() {
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-pass').value;
+            const alertBox = document.getElementById('login-alert');
+
+            if(!email || !password) {
+                showAlert(alertBox, 'Ingrese el correo y la contraseña.', 'error');
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showAlert(alertBox, 'Acceso autorizado.', 'success');
+            } catch (error) {
+                showAlert(alertBox, firebaseErrorMessage(error.code), 'error');
+            }
+        };
+
+        window.logoutAdmin = function() {
+            signOut(auth).catch(() => {
+                showAlert(document.getElementById('admin-alert'), 'No se pudo cerrar la sesión.', 'error');
+            });
+        };
+
+        onAuthStateChanged(auth, user => setAdminPanel(Boolean(user)));
+
         isSupported().then(supported => {
             if (supported) getAnalytics(app);
         }).catch(() => {
@@ -95,7 +140,7 @@
         .intro p, .admin-copy { margin: 0; color: var(--muted); font-family: Arial, sans-serif; line-height: 1.6; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 9px; color: var(--ink); font: 700 .9rem Arial, sans-serif; }
-        input[type='text'], input[type='password'], input[type='file'] { width: 100%; padding: 14px 15px; color: var(--ink); background: #fbfdfb; border: 1px solid #cbdad0; border-radius: 10px; font: 1rem Arial, sans-serif; transition: border-color .2s, box-shadow .2s; }
+        input[type='text'], input[type='email'], input[type='password'], input[type='file'] { width: 100%; padding: 14px 15px; color: var(--ink); background: #fbfdfb; border: 1px solid #cbdad0; border-radius: 10px; font: 1rem Arial, sans-serif; transition: border-color .2s, box-shadow .2s; }
         input:focus { outline: 0; border-color: var(--green); box-shadow: 0 0 0 4px rgba(18, 132, 72, .11); }
         button.btn { width: 100%; padding: 14px 20px; color: white; background: var(--green); border: 0; border-radius: 10px; font: 700 1rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
         button.btn:hover { background: #0c6c3a; transform: translateY(-1px); }
@@ -173,8 +218,12 @@
     <div id="admin" class="tab-content">
         <div id="admin-login-form">
             <div class="form-group">
+                <label for="admin-email">Correo del administrador:</label>
+                <input type="email" id="admin-email" value="censerjrsas@hotmail.com" autocomplete="username">
+            </div>
+            <div class="form-group">
                 <label for="admin-pass">Contraseña de Administrador:</label>
-                <input type="password" id="admin-pass" placeholder="Ingrese la clave">
+                <input type="password" id="admin-pass" placeholder="Ingrese la contraseña" autocomplete="current-password">
             </div>
             <button class="btn" onclick="loginAdmin()">Ingresar</button>
             <div id="login-alert" class="alert alert-error"></div>
@@ -195,6 +244,7 @@
                 <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
             </div>
             <button class="btn" onclick="procesarArchivo()">Cargar y Guardar Datos</button>
+            <button class="btn" type="button" onclick="logoutAdmin()">Cerrar sesión</button>
 
             <div id="admin-alert" class="alert"></div>
         </div>
@@ -218,10 +268,6 @@
             document.querySelectorAll('.tab-btn')[1].classList.add('active');
             document.getElementById('admin').classList.add('active');
         }
-    }
-
-    function loginAdmin() {
-        showAlert(document.getElementById('login-alert'), 'La autenticación de administrador debe realizarse en un servidor. Esta versión estática no puede proteger datos ni secretos.', 'error');
     }
 
     function procesarArchivo() {
