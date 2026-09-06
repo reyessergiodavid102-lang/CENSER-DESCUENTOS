@@ -7,4 +7,5 @@ RUN printf 'server {\n    listen 10000;\n    listen [::]:10000;\n    server_name
 
 EXPOSE 10000
 
-CMD 
+CMD ["nginx", "-g", "daemon off;"]
+
