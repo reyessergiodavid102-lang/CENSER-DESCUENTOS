@@ -6,6 +6,27 @@
     <title>Censer JR S.A.S - Consulta de Descuentos</title>
     <!-- XLSX library to process Excel/CSV files in browser -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+        import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
+            authDomain: 'censer-descuentos.firebaseapp.com',
+            projectId: 'censer-descuentos',
+            storageBucket: 'censer-descuentos.firebasestorage.app',
+            messagingSenderId: '361651122880',
+            appId: '1:361651122880:web:bb7100a78dc5782015f325',
+            measurementId: 'G-B75KQ713KE'
+        };
+
+        const app = initializeApp(firebaseConfig);
+        isSupported().then(supported => {
+            if (supported) getAnalytics(app);
+        }).catch(() => {
+            // Analytics no está disponible en todos los navegadores o contextos.
+        });
+    </script>
     <style>
         :root {
             --red: #d62828;
@@ -126,7 +147,7 @@
         </div>
         <div class="form-group">
             <label for="cedula">Ingrese su número de Cédula:</label>
-            <input type="text" id="cedula" placeholder="Ej: 123456789">
+            <input type="text" id="cedula" placeholder="Ej: 123456789" inputmode="numeric" maxlength="20" autocomplete="off">
         </div>
         <button class="btn" onclick="consultarDescuentos()">Consultar</button>
 
@@ -156,6 +177,7 @@
                 <input type="password" id="admin-pass" placeholder="Ingrese la clave">
             </div>
             <button class="btn" onclick="loginAdmin()">Ingresar</button>
+            <div id="login-alert" class="alert alert-error"></div>
         </div>
 
         <div id="admin-panel" style="display: none;">
@@ -182,7 +204,8 @@
 
 <script>
     // Clave temporal para panel de administración
-    const ADMIN_PASSWORD = "admin123censer";
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const REQUIRED_COLUMNS = ['cedula', 'nombre', 'mes', 'concepto', 'monto'];
 
     function switchTab(tab) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -198,13 +221,7 @@
     }
 
     function loginAdmin() {
-        const pass = document.getElementById('admin-pass').value;
-        if(pass === ADMIN_PASSWORD) {
-            document.getElementById('admin-login-form').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'block';
-        } else {
-            alert('Contraseña incorrecta');
-        }
+        showAlert(document.getElementById('login-alert'), 'La autenticación de administrador debe realizarse en un servidor. Esta versión estática no puede proteger datos ni secretos.', 'error');
     }
 
     function procesarArchivo() {
@@ -217,13 +234,24 @@
             return;
         }
 
+        if(file.size > MAX_FILE_SIZE) {
+            showAlert(alertBox, 'El archivo supera el límite permitido de 10 MB.', 'error');
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const json = XLSX.utils.sheet_to_json(worksheet);
+            let json;
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                json = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
+            } catch (error) {
+                showAlert(alertBox, 'No se pudo leer el archivo seleccionado.', 'error');
+                return;
+            }
 
             if(json.length === 0) {
                 showAlert(alertBox, 'El archivo está vacío.', 'error');
@@ -231,9 +259,14 @@
             }
 
             // Validar que contenga campos obligatorios
-            const sample = json[0];
-            if(!sample.cedula || !sample.concepto || !sample.monto || !sample.mes) {
+            const columns = Object.keys(json[0]);
+            if(REQUIRED_COLUMNS.some(column => !columns.includes(column))) {
                 showAlert(alertBox, 'Formato inválido. Debe tener columnas: cedula, nombre, mes, concepto, monto.', 'error');
+                return;
+            }
+
+            if(json.some(row => !String(row.cedula).trim() || !String(row.mes).trim() || !String(row.concepto).trim() || !Number.isFinite(Number(row.monto)))) {
+                showAlert(alertBox, 'Hay registros incompletos o con un monto inválido.', 'error');
                 return;
             }
 
@@ -268,7 +301,19 @@
             return;
         }
 
-        const db = JSON.parse(dbRaw);
+        let db;
+        try {
+            db = JSON.parse(dbRaw);
+        } catch (error) {
+            showAlert(alertBox, 'La base de datos local está dañada. Contacte a la administración.', 'error');
+            return;
+        }
+
+        if(!Array.isArray(db)) {
+            showAlert(alertBox, 'La base de datos local no tiene un formato válido.', 'error');
+            return;
+        }
+
         const registros = db.filter(item => String(item.cedula).trim() === cedulaInput);
 
         if(registros.length === 0) {
@@ -280,11 +325,11 @@
 
         registros.forEach(reg => {
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${reg.mes || '-'}</td>
-                <td>${reg.concepto || '-'}</td>
-                <td>$${Number(reg.monto).toLocaleString('es-CO')}</td>
-            `;
+            [reg.mes || '-', reg.concepto || '-', `$${Number(reg.monto).toLocaleString('es-CO')}`].forEach(value => {
+                const cell = document.createElement('td');
+                cell.textContent = String(value);
+                row.appendChild(cell);
+            });
             tabla.appendChild(row);
         });
 
@@ -300,3 +345,4 @@
 
 </body>
 </html>
+
