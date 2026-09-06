@@ -27,6 +27,7 @@
         function setAdminPanel(isAuthenticated) {
             document.getElementById('admin-login-form').style.display = isAuthenticated ? 'none' : 'block';
             document.getElementById('admin-panel').style.display = isAuthenticated ? 'block' : 'none';
+            if(isAuthenticated) renderAdminData();
         }
 
         function firebaseErrorMessage(errorCode) {
@@ -37,6 +38,7 @@
                 'auth/wrong-password': 'La contraseña no coincide con la cuenta.',
                 'auth/user-disabled': 'Esta cuenta de administrador está deshabilitada.',
                 'auth/operation-not-allowed': 'Activa el proveedor Email/Password en Firebase Authentication.',
+                'auth/configuration-not-found': 'Firebase Authentication no está configurado. Activa Email/Password y la API Identity Toolkit en el proyecto.',
                 'auth/unauthorized-domain': 'Agrega el dominio de Render en Firebase Authentication > Settings > Authorized domains.',
                 'auth/network-request-failed': 'No hay conexión con Firebase. Comprueba la conexión e inténtalo de nuevo.',
                 'auth/too-many-requests': 'Demasiados intentos. Espere unos minutos y vuelva a intentarlo.'
@@ -160,6 +162,14 @@
         .alert { display: none; margin-top: 15px; padding: 13px 15px; border-radius: 10px; font-family: Arial, sans-serif; line-height: 1.4; }
         .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
         .alert-success { color: #14623b; background: #eef9f1; border: 1px solid #bfdfc8; }
+        .admin-data { margin-top: 28px; overflow-x: auto; }
+        .admin-data h3 { margin: 0 0 12px; font-size: 1.2rem; }
+        .admin-data table { min-width: 720px; margin-top: 0; }
+        .admin-data input { width: 100%; min-width: 100px; padding: 9px; color: var(--ink); background: #fff; border: 1px solid #cbdad0; border-radius: 7px; font: .9rem Arial, sans-serif; }
+        .admin-data button { padding: 8px 10px; color: #fff; border: 0; border-radius: 7px; font: 700 .8rem Arial, sans-serif; cursor: pointer; }
+        .save-record { background: var(--green); }
+        .delete-record { background: var(--red); }
+        .delete-all { margin-top: 12px; background: var(--red); }
         @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 600px) {
@@ -251,6 +261,24 @@
             <button class="btn" type="button" onclick="logoutAdmin()">Cerrar sesión</button>
 
             <div id="admin-alert" class="alert"></div>
+
+            <div id="admin-data" class="admin-data" style="display: none;">
+                <h3>Administrar registros guardados</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cédula</th>
+                            <th>Nombre</th>
+                            <th>Mes</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-data-body"></tbody>
+                </table>
+                <button class="btn delete-all" type="button" onclick="borrarTodosLosRegistros()">Borrar todos los registros</button>
+            </div>
         </div>
     </div>
     </div>
@@ -322,11 +350,101 @@
 
             // Guardar en el almacenamiento local del navegador
             localStorage.setItem('censer_descuentos_db', JSON.stringify(json));
+            renderAdminData();
             showAlert(alertBox, 'Base de datos cargada y guardada exitosamente.', 'success');
             fileInput.value = '';
         };
 
         reader.readAsArrayBuffer(file);
+    }
+
+    function getStoredDatabase() {
+        try {
+            const database = JSON.parse(localStorage.getItem('censer_descuentos_db') || '[]');
+            return Array.isArray(database) ? database : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function renderAdminData() {
+        const dataPanel = document.getElementById('admin-data');
+        const tableBody = document.getElementById('admin-data-body');
+        if(!dataPanel || !tableBody) return;
+
+        const database = getStoredDatabase();
+        tableBody.innerHTML = '';
+        dataPanel.style.display = database.length ? 'block' : 'none';
+
+        database.forEach((record, index) => {
+            const row = document.createElement('tr');
+            const fields = ['cedula', 'nombre', 'mes', 'concepto', 'monto'];
+            const inputs = fields.map(field => {
+                const cell = document.createElement('td');
+                const input = document.createElement('input');
+                input.value = record[field] ?? '';
+                input.type = field === 'monto' ? 'number' : 'text';
+                if(field === 'monto') input.step = 'any';
+                cell.appendChild(input);
+                row.appendChild(cell);
+                return input;
+            });
+
+            const actionsCell = document.createElement('td');
+            const saveButton = document.createElement('button');
+            saveButton.className = 'save-record';
+            saveButton.type = 'button';
+            saveButton.textContent = 'Guardar';
+            saveButton.addEventListener('click', () => guardarRegistro(index, inputs));
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-record';
+            deleteButton.type = 'button';
+            deleteButton.textContent = 'Borrar';
+            deleteButton.addEventListener('click', () => borrarRegistro(index));
+
+            actionsCell.append(saveButton, ' ', deleteButton);
+            row.appendChild(actionsCell);
+            tableBody.appendChild(row);
+        });
+    }
+
+    function guardarRegistro(index, inputs) {
+        const updatedRecord = {
+            cedula: inputs[0].value.trim(),
+            nombre: inputs[1].value.trim(),
+            mes: inputs[2].value.trim(),
+            concepto: inputs[3].value.trim(),
+            monto: inputs[4].value
+        };
+
+        if(!updatedRecord.cedula || !updatedRecord.mes || !updatedRecord.concepto || !Number.isFinite(Number(updatedRecord.monto))) {
+            showAlert(document.getElementById('admin-alert'), 'Completa cédula, mes, concepto y un monto válido.', 'error');
+            return;
+        }
+
+        const database = getStoredDatabase();
+        if(!database[index]) return;
+        database[index] = updatedRecord;
+        localStorage.setItem('censer_descuentos_db', JSON.stringify(database));
+        renderAdminData();
+        showAlert(document.getElementById('admin-alert'), 'Registro actualizado.', 'success');
+    }
+
+    function borrarRegistro(index) {
+        if(!window.confirm('¿Borrar este registro?')) return;
+        const database = getStoredDatabase();
+        database.splice(index, 1);
+        localStorage.setItem('censer_descuentos_db', JSON.stringify(database));
+        renderAdminData();
+        showAlert(document.getElementById('admin-alert'), 'Registro borrado.', 'success');
+    }
+
+    function borrarTodosLosRegistros() {
+        if(!window.confirm('¿Borrar todos los registros guardados?')) return;
+        localStorage.removeItem('censer_descuentos_db');
+        renderAdminData();
+        showAlert(document.getElementById('admin-alert'), 'Todos los registros fueron borrados.', 'success');
     }
 
     function consultarDescuentos() {
