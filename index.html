@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Censer JR S.A.S - Consulta de Descuentos</title>
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <!-- Librería XLSX para procesar Excel/CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -28,7 +30,7 @@
         }
 
         .container {
-            max-width: 960px;
+            max-width: 980px;
             margin: 0 auto;
             overflow: hidden;
             background: var(--paper);
@@ -68,13 +70,34 @@
         .btn { width: 100%; padding: 12px 18px; color: white; background: var(--green); border: 0; border-radius: 8px; font: 700 1rem Arial, sans-serif; cursor: pointer; transition: background .2s; }
         .btn:hover { background: #0c6c3a; }
         .btn-secondary { background: var(--muted); margin-top: 8px; }
-        .btn-danger { background: var(--red); }
+        .btn-danger { background: var(--red); margin-top: 8px; }
 
         .result-box, .admin-box { margin-top: 24px; padding: 20px; background: #fbfdfb; border: 1px solid var(--line); border-radius: 12px; }
         
+        .total-card {
+            background: var(--wash);
+            border: 1px solid var(--line);
+            border-left: 5px solid var(--green);
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total-card span { font-size: .95rem; color: var(--muted); font-weight: bold; }
+        .total-card h3 { margin: 0; font-size: 1.3rem; color: var(--green); }
+
         table { width: 100%; margin-top: 12px; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: .9rem; }
         th { color: #fff; background: var(--red); text-transform: uppercase; letter-spacing: .03em; font-size: .8rem; }
+
+        .admin-data-container { overflow-x: auto; margin-top: 20px; }
+        .admin-data-container table { min-width: 720px; }
+        .admin-data-container input { width: 100%; padding: 6px 8px; font-size: .85rem; }
+        .action-btn { padding: 6px 10px; font-weight: bold; border-radius: 6px; border: 0; cursor: pointer; color: #fff; font-size: .8rem; }
+        .save-btn { background: var(--green); }
+        .delete-btn { background: var(--red); }
 
         .alert { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: .9rem; }
         .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
@@ -134,6 +157,12 @@
                     </div>
                 </div>
 
+                <!-- Tarjeta del Total Sumado -->
+                <div class="total-card">
+                    <span>Total Descuentos (Mes seleccionado):</span>
+                    <h3 id="monto-total-suma">$0</h3>
+                </div>
+
                 <table>
                     <thead>
                         <tr>
@@ -169,9 +198,29 @@
                 <div class="form-group">
                     <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
                 </div>
-                <button class="btn" id="btn-procesar">Cargar Datos</button>
+                <button class="btn" id="btn-procesar">Cargar Datos Masivos</button>
                 <button class="btn btn-secondary" id="btn-logout">Cerrar Sesión</button>
                 <div id="admin-alert" class="alert"></div>
+
+                <!-- Tabla de Edición Manual de Registros -->
+                <div id="admin-records-section" class="admin-data-container" style="display: none;">
+                    <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
+                    <h3>Edición Individual de Registros</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cédula</th>
+                                <th>Nombre</th>
+                                <th>Mes</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                    <button class="btn btn-danger" id="btn-delete-all">Borrar Todos los Registros</button>
+                </div>
             </div>
         </div>
     </div>
@@ -180,7 +229,7 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, where, writeBatch, doc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
     const firebaseConfig = {
         apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
@@ -197,7 +246,6 @@
 
     let rawData = [];
 
-    // --- Control de Interfaz ---
     const switchTab = (activeTab) => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -218,7 +266,7 @@
         el.style.display = 'block';
     };
 
-    // --- Lógica de Negocio y Filtros ---
+    // --- Rendimiento y Cálculo de Totales para Empleados ---
     const renderTable = () => {
         const selectedMes = document.getElementById('filter-mes').value;
         const sortOrder = document.getElementById('sort-monto').value;
@@ -228,6 +276,10 @@
 
         if (sortOrder === 'asc') filtered.sort((a, b) => a.monto - b.monto);
         if (sortOrder === 'desc') filtered.sort((a, b) => b.monto - a.monto);
+
+        // Sumatoria del total filtrado
+        const totalSuma = filtered.reduce((acc, curr) => acc + Number(curr.monto || 0), 0);
+        document.getElementById('monto-total-suma').textContent = `$${totalSuma.toLocaleString('es-CO')}`;
 
         tbody.innerHTML = filtered.map(reg => `
             <tr>
@@ -262,7 +314,7 @@
             const snapshot = await getDocs(q);
 
             if (snapshot.empty) {
-                return showAlert(alertId, 'No se encontraron registros asociadas a la cédula.', 'error');
+                return showAlert(alertId, 'No se encontraron registros asociados a esta cédula.', 'error');
             }
 
             rawData = snapshot.docs.map(d => d.data());
@@ -271,17 +323,105 @@
             setupFilters();
             document.getElementById('resultado').style.display = 'block';
         } catch (err) {
-            showAlert(alertId, 'Error de conexión. Verifique su red o las reglas de acceso.', 'error');
+            showAlert(alertId, 'Error de conexión. Verifique su red o las reglas de acceso en Firestore.', 'error');
         }
     };
 
-    // --- Administración y Carga de Archivos ---
+    // --- Funciones de Modificación y Gestión de Administrador ---
+    const loadAdminRecords = async () => {
+        const tbody = document.getElementById('admin-table-body');
+        const container = document.getElementById('admin-records-section');
+
+        try {
+            const snapshot = await getDocs(collection(db, 'descuentos'));
+            if (snapshot.empty) {
+                container.style.display = 'none';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            snapshot.docs.forEach(docSnap => {
+                const item = docSnap.data();
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+                    <td><input type="text" value="${item.cedula || ''}" id="ced-${docSnap.id}"></td>
+                    <td><input type="text" value="${item.nombre || ''}" id="nom-${docSnap.id}"></td>
+                    <td><input type="text" value="${item.mes || ''}" id="mes-${docSnap.id}"></td>
+                    <td><input type="text" value="${item.concepto || ''}" id="con-${docSnap.id}"></td>
+                    <td><input type="number" value="${item.monto || 0}" id="mon-${docSnap.id}"></td>
+                    <td>
+                        <button class="action-btn save-btn" data-id="${docSnap.id}">Guardar</button>
+                        <button class="action-btn delete-btn" data-del-id="${docSnap.id}">Borrar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            container.style.display = 'block';
+
+            // Asignación de eventos dinámicos para edición y borrado directo
+            document.querySelectorAll('.save-btn').forEach(b => {
+                b.addEventListener('click', () => guardarCambiosRegistro(b.getAttribute('data-id')));
+            });
+            document.querySelectorAll('.delete-btn').forEach(b => {
+                b.addEventListener('click', () => borrarRegistro(b.getAttribute('data-del-id')));
+            });
+
+        } catch (e) {
+            showAlert('admin-alert', 'No se pudieron cargar los registros guardados.', 'error');
+        }
+    };
+
+    const guardarCambiosRegistro = async (id) => {
+        const updated = {
+            cedula: document.getElementById(`ced-${id}`).value.trim(),
+            nombre: document.getElementById(`nom-${id}`).value.trim(),
+            mes: document.getElementById(`mes-${id}`).value.trim(),
+            concepto: document.getElementById(`con-${id}`).value.trim(),
+            monto: Number(document.getElementById(`mon-${id}`).value) || 0
+        };
+
+        try {
+            await updateDoc(doc(db, 'descuentos', id), updated);
+            showAlert('admin-alert', 'Registro actualizado exitosamente.', 'success');
+            loadAdminRecords();
+        } catch (e) {
+            showAlert('admin-alert', 'Error al guardar los cambios en Firestore.', 'error');
+        }
+    };
+
+    const borrarRegistro = async (id) => {
+        if (!confirm('¿Desea borrar este registro individual?')) return;
+        try {
+            await deleteDoc(doc(db, 'descuentos', id));
+            showAlert('admin-alert', 'Registro eliminado.', 'success');
+            loadAdminRecords();
+        } catch (e) {
+            showAlert('admin-alert', 'Error al borrar el registro.', 'error');
+        }
+    };
+
+    const borrarTodosLosRegistros = async () => {
+        if (!confirm('¿Está seguro de eliminar TODOS los registros guardados?')) return;
+        try {
+            const snapshot = await getDocs(collection(db, 'descuentos'));
+            const batch = writeBatch(db);
+            snapshot.docs.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+            showAlert('admin-alert', 'Se borraron todos los registros.', 'success');
+            loadAdminRecords();
+        } catch (e) {
+            showAlert('admin-alert', 'Error al vaciar la base de datos.', 'error');
+        }
+    };
+
     const procesarArchivo = async () => {
         const fileInput = document.getElementById('excel-file');
         const file = fileInput.files[0];
         const alertId = 'admin-alert';
 
-        if (!file) return showAlert(alertId, 'Seleccione un archivo.', 'error');
+        if (!file) return showAlert(alertId, 'Seleccione un archivo Excel o CSV.', 'error');
 
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -290,9 +430,8 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
 
-                if (!json.length) return showAlert(alertId, 'El archivo está vacío.', 'error');
+                if (!json.length) return showAlert(alertId, 'El archivo no tiene contenido.', 'error');
 
-                // Sobrescribir colección
                 const oldDocs = await getDocs(collection(db, 'descuentos'));
                 const batch = writeBatch(db);
                 
@@ -311,22 +450,24 @@
                 });
 
                 await batch.commit();
-                showAlert(alertId, 'Base de datos cargada exitosamente.', 'success');
+                showAlert(alertId, 'Base de datos cargada y sincronizada.', 'success');
                 fileInput.value = '';
+                loadAdminRecords();
             } catch (err) {
-                showAlert(alertId, 'Error al procesar el archivo o guardar en base de datos.', 'error');
+                showAlert(alertId, 'Error al procesar el archivo o escribir en la base de datos.', 'error');
             }
         };
         reader.readAsArrayBuffer(file);
     };
 
-    // --- Event Listeners & Auth Handler ---
+    // --- Listeners de Eventos y Manejo de Sesión ---
     document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
     document.getElementById('btn-tab-admin').addEventListener('click', () => switchTab('admin'));
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
     document.getElementById('filter-mes').addEventListener('change', renderTable);
     document.getElementById('sort-monto').addEventListener('change', renderTable);
     document.getElementById('btn-procesar').addEventListener('click', procesarArchivo);
+    document.getElementById('btn-delete-all').addEventListener('click', borrarTodosLosRegistros);
 
     document.getElementById('btn-login').addEventListener('click', async () => {
         const email = document.getElementById('admin-email').value;
@@ -334,7 +475,7 @@
         try {
             await signInWithEmailAndPassword(auth, email, pass);
         } catch (e) {
-            showAlert('login-alert', 'Credenciales inválidas.', 'error');
+            showAlert('login-alert', 'Credenciales no válidas.', 'error');
         }
     });
 
@@ -343,8 +484,10 @@
     onAuthStateChanged(auth, user => {
         document.getElementById('admin-login-form').style.display = user ? 'none' : 'block';
         document.getElementById('admin-panel').style.display = user ? 'block' : 'none';
+        if (user) loadAdminRecords();
     });
 </script>
 </body>
 </html>
+
     
