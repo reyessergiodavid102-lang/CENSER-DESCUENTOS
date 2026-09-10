@@ -99,6 +99,19 @@
         .save-btn { background: var(--green); }
         .delete-btn { background: var(--red); }
 
+        .document-card { margin-top: 18px; padding: 18px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+        .document-card h4 { margin: 0 0 4px; color: var(--green); }
+        .document-card p { margin: 4px 0 12px; color: var(--muted); font-size: .88rem; }
+        .document-table { display: block; max-height: 440px; overflow: auto; margin-top: 10px; }
+        .document-table table { min-width: 680px; margin-top: 0; }
+        .document-table th { position: sticky; top: 0; z-index: 1; }
+        .document-empty { padding: 16px; color: var(--muted); background: var(--wash); border-radius: 8px; }
+        .pdf-card { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 16px; margin-top: 10px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+        .pdf-card strong { display: block; }
+        .pdf-card small { color: var(--muted); }
+        .pdf-card .btn { width: auto; padding: 9px 14px; text-decoration: none; white-space: nowrap; }
+        @media (max-width: 600px) { .pdf-card { align-items: stretch; flex-direction: column; } .pdf-card .btn { width: 100%; } }
+
         .alert { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: .9rem; }
         .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
         .alert-success { color: #14623b; background: #eef9f1; border: 1px solid #bfdfc8; }
@@ -124,6 +137,7 @@
     <div class="workspace">
         <div class="tabs">
             <button class="tab-btn active" id="btn-tab-empleado">Consulta Empleado</button>
+            <button class="tab-btn" id="btn-tab-documentos">Volantes y Tirillas</button>
             <button class="tab-btn" id="btn-tab-admin">Administrador</button>
         </div>
 
@@ -176,6 +190,24 @@
             </div>
         </div>
 
+        <!-- Consulta de Volantes y Tirillas -->
+        <div id="tab-documentos" class="tab-content">
+            <div class="form-group">
+                <label for="cedula-documentos">Número de Cédula:</label>
+                <input type="text" id="cedula-documentos" placeholder="Ej: 1123801274" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="mes-documentos">Mes del volante:</label>
+                <input type="month" id="mes-documentos">
+            </div>
+            <button class="btn" id="btn-consultar-documentos">Consultar Volantes y Tirillas</button>
+            <div id="documentos-alert" class="alert"></div>
+            <div id="documentos-resultado" class="result-box" style="display: none;">
+                <h3 id="nombre-documentos"></h3>
+                <div id="documentos-lista"></div>
+            </div>
+        </div>
+
         <!-- Módulo Administrador -->
         <div id="tab-admin" class="tab-content">
             <div id="admin-login-form">
@@ -199,6 +231,18 @@
                     <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
                 </div>
                 <button class="btn" id="btn-procesar">Cargar Datos Masivos</button>
+
+                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
+                <h3>Cargar volantes en PDF</h3>
+                <p style="color: var(--muted); font-size: 0.9rem;">Seleccione el mes y uno o varios PDF. Cada archivo debe corresponder a un empleado y tener la cédula en el nombre, por ejemplo: <strong>479511_Carlos.pdf</strong>.</p>
+                <div class="form-group">
+                    <label for="pdf-periodo">Mes del volante:</label>
+                    <input type="month" id="pdf-periodo">
+                </div>
+                <div class="form-group">
+                    <input type="file" id="pdf-files" accept="application/pdf,.pdf" multiple>
+                </div>
+                <button class="btn" id="btn-procesar-pdf">Cargar PDFs</button>
                 <button class="btn btn-secondary" id="btn-logout">Cerrar Sesión</button>
                 <div id="admin-alert" class="alert"></div>
 
@@ -229,7 +273,8 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
 
     const firebaseConfig = {
         apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
@@ -243,8 +288,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app, 'gs://censer-descuentos.firebasestorage.app');
 
     let rawData = [];
+    let nominaData = [];
+    let pdfData = [];
 
     const switchTab = (activeTab) => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -253,6 +301,9 @@
         if (activeTab === 'empleado') {
             document.getElementById('btn-tab-empleado').classList.add('active');
             document.getElementById('tab-empleado').classList.add('active');
+        } else if (activeTab === 'documentos') {
+            document.getElementById('btn-tab-documentos').classList.add('active');
+            document.getElementById('tab-documentos').classList.add('active');
         } else {
             document.getElementById('btn-tab-admin').classList.add('active');
             document.getElementById('tab-admin').classList.add('active');
@@ -264,6 +315,201 @@
         el.className = `alert alert-${type}`;
         el.textContent = message;
         el.style.display = 'block';
+    };
+
+    const normalizeText = value => String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, ' ')
+        .trim();
+
+    const cellText = value => {
+        if (value instanceof Date) return value.toLocaleDateString('es-CO');
+        if (typeof value === 'number') return String(value);
+        return String(value ?? '').replace(/\s+/g, ' ').trim();
+    };
+
+    const sheetRows = sheet => XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
+        .map(row => row.map(cellText));
+
+    const rowContains = (row, text) => row.some(cell => normalizeText(cell).includes(normalizeText(text)));
+
+    const isVolanteHeader = row => {
+        const cells = row.map(normalizeText);
+        const hasCedula = cells.some(cell => cell === 'C C' || cell === 'CC' || cell.includes('CEDULA'));
+        const hasName = cells.some(cell => cell === 'NOMBRE' || cell.includes('NOMBRE'));
+        const hasDescription = cells.some(cell => cell.includes('DESCRIPCION'));
+        return hasCedula && hasName && hasDescription;
+    };
+
+    const getColumnIndex = (row, options) => row.findIndex(cell => {
+        const normalized = normalizeText(cell);
+        return options.some(option => normalized === option || normalized.includes(option));
+    });
+
+    const extractDigits = value => String(value || '').replace(/\D/g, '');
+
+    const getPeriodFromSheet = sheetName => {
+        const normalized = normalizeText(sheetName).replace(/^(VOLANTES?|TIRILLAS?)\s*/, '').trim();
+        return normalized || sheetName;
+    };
+
+    const parseVolanteSheet = (sheetName, rows) => {
+        const records = [];
+        for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+            const headerRow = rows[rowIndex];
+            if (!isVolanteHeader(headerRow)) continue;
+
+            const cedulaColumn = getColumnIndex(headerRow, ['C C', 'CC', 'CEDULA']);
+            const nameColumn = getColumnIndex(headerRow, ['NOMBRE']);
+            const dataRow = rows.slice(rowIndex + 1, rowIndex + 6).find(row => {
+                const rowCedula = extractDigits(row[cedulaColumn]);
+                return rowCedula.length >= 6 && nameColumn >= 0 && row[nameColumn];
+            }) || [];
+            const cedula = extractDigits(dataRow[cedulaColumn]);
+            const name = nameColumn >= 0 ? dataRow[nameColumn] : '';
+            if (cedula.length < 6 || !name) continue;
+
+            const documentRows = [];
+            for (let dataIndex = rowIndex; dataIndex < rows.length && documentRows.length < 80; dataIndex += 1) {
+                if (dataIndex > rowIndex && isVolanteHeader(rows[dataIndex])) break;
+                if (rows[dataIndex].some(Boolean)) documentRows.push(rows[dataIndex]);
+            }
+
+            records.push({
+                tipo: 'volante',
+                cedula,
+                nombre: name,
+                periodo: getPeriodFromSheet(sheetName),
+                hoja: sheetName,
+                encabezados: headerRow,
+                filas: documentRows.slice(1)
+            });
+        }
+        return records;
+    };
+
+    const parseTirillaSheet = (sheetName, rows) => {
+        const records = [];
+        for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+            const headerRow = rows[rowIndex];
+            if (!rowContains(headerRow, 'COD TRABAJADOR') || !rowContains(headerRow, 'NOMBRE')) continue;
+
+            const codeColumn = getColumnIndex(headerRow, ['COD TRABAJADOR']);
+            const nameColumn = getColumnIndex(headerRow, ['NOMBRE']);
+            const documentRows = [];
+            let name = '';
+            let code = '';
+
+            for (let dataIndex = rowIndex + 1; dataIndex < rows.length && documentRows.length < 120; dataIndex += 1) {
+                const currentRow = rows[dataIndex];
+                if (dataIndex > rowIndex + 1 && rowContains(currentRow, 'COD TRABAJADOR') && rowContains(currentRow, 'NOMBRE')) break;
+                if (currentRow.some(Boolean) && normalizeText(currentRow[0]) !== 'TOTAL GENERAL') {
+                    documentRows.push(currentRow);
+                    if (!name && currentRow[nameColumn]) name = currentRow[nameColumn];
+                    if (!code && currentRow[codeColumn]) code = currentRow[codeColumn];
+                }
+                if (normalizeText(currentRow[0]) === 'TOTAL GENERAL') break;
+            }
+
+            if (name && documentRows.length) {
+                records.push({
+                    tipo: 'tirilla',
+                    nombre: name,
+                    nombreClave: normalizeText(name),
+                    codigoTrabajador: code,
+                    periodo: getPeriodFromSheet(sheetName),
+                    hoja: sheetName,
+                    encabezados: headerRow,
+                    filas: documentRows
+                });
+            }
+        }
+        return records;
+    };
+
+    const parseNominaWorkbook = workbook => {
+        const volantes = [];
+        const tirillas = [];
+        workbook.SheetNames.forEach(sheetName => {
+            const normalizedName = normalizeText(sheetName);
+            const rows = sheetRows(workbook.Sheets[sheetName]);
+            if (normalizedName.includes('VOLANTE')) volantes.push(...parseVolanteSheet(sheetName, rows));
+            if (normalizedName.includes('TIRILLA')) tirillas.push(...parseTirillaSheet(sheetName, rows));
+        });
+
+        const namesToCedulas = new Map(volantes.map(item => [normalizeText(item.nombre), item.cedula]));
+        const linkedTirillas = tirillas
+            .map(item => ({ ...item, cedula: namesToCedulas.get(item.nombreClave) || '' }))
+            .filter(item => item.cedula);
+
+        return [...volantes, ...linkedTirillas];
+    };
+
+    const commitNominaData = async records => {
+        const currentSnapshot = await getDocs(collection(db, 'nomina'));
+        const operations = [];
+        currentSnapshot.docs.forEach(snapshotDoc => operations.push({ type: 'delete', reference: snapshotDoc.ref }));
+        records.forEach(record => operations.push({
+            type: 'set',
+            reference: doc(collection(db, 'nomina')),
+            data: record
+        }));
+
+        for (let start = 0; start < operations.length; start += 450) {
+            const batch = writeBatch(db);
+            operations.slice(start, start + 450).forEach(operation => {
+                if (operation.type === 'delete') batch.delete(operation.reference);
+                else batch.set(operation.reference, operation.data);
+            });
+            await batch.commit();
+        }
+    };
+
+    const escapeHtml = value => String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    const renderDocument = record => {
+        const headers = record.encabezados || [];
+        const rows = record.filas || [];
+        const headerCells = headers.map(header => `<th>${escapeHtml(header)}</th>`).join('');
+        const bodyRows = rows.map(row => `<tr>${headers.map((_, index) => `<td>${escapeHtml(row[index] || '')}</td>`).join('')}</tr>`).join('');
+        const title = record.tipo === 'volante' ? 'Volante de pago' : 'Tirilla de pago';
+        return `<section class="document-card"><h4>${title} - ${escapeHtml(record.periodo)}</h4><p>Hoja: ${escapeHtml(record.hoja)}${record.codigoTrabajador ? ` | Código: ${escapeHtml(record.codigoTrabajador)}` : ''}</p><div class="document-table"><table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div></section>`;
+    };
+
+    const renderPdf = record => `<div class="pdf-card"><div><strong>Volante de pago - ${escapeHtml(record.periodo)}</strong><small>${escapeHtml(record.nombreArchivo)}</small></div><a class="btn" href="${escapeHtml(record.url)}" target="_blank" rel="noopener">Abrir / Descargar PDF</a></div>`;
+
+    const consultarDocumentos = async () => {
+        const cedula = extractDigits(document.getElementById('cedula-documentos').value);
+        const periodo = document.getElementById('mes-documentos').value;
+        const alertId = 'documentos-alert';
+        document.getElementById(alertId).style.display = 'none';
+        document.getElementById('documentos-resultado').style.display = 'none';
+        if (!cedula) return showAlert(alertId, 'Ingrese un número de cédula.', 'error');
+
+        try {
+            const [nominaSnapshot, pdfSnapshot] = await Promise.all([
+                getDocs(query(collection(db, 'nomina'), where('cedula', '==', cedula))),
+                getDocs(query(collection(db, 'volantesPdf'), where('cedula', '==', cedula)))
+            ]);
+            nominaData = nominaSnapshot.docs.map(snapshotDoc => snapshotDoc.data());
+            pdfData = pdfSnapshot.docs.map(snapshotDoc => snapshotDoc.data());
+            const filteredNomina = periodo ? nominaData.filter(record => record.periodo === periodo || normalizeText(record.periodo).includes(normalizeText(periodo))) : nominaData;
+            const filteredPdf = periodo ? pdfData.filter(record => record.periodo === periodo) : pdfData;
+            if (!filteredNomina.length && !filteredPdf.length) return showAlert(alertId, 'No se encontraron documentos para la cédula y el mes seleccionado.', 'error');
+            const firstRecord = filteredNomina[0] || filteredPdf[0];
+            document.getElementById('nombre-documentos').textContent = firstRecord.nombre ? `Empleado: ${firstRecord.nombre}` : `Cédula: ${cedula}`;
+            document.getElementById('documentos-lista').innerHTML = [...filteredPdf.map(renderPdf), ...filteredNomina.map(renderDocument)].join('');
+            document.getElementById('documentos-resultado').style.display = 'block';
+        } catch (error) {
+            showAlert(alertId, 'Error al consultar los documentos. Verifique la conexión o las reglas de Firestore.', 'error');
+        }
     };
 
     // --- Rendimiento y Cálculo de Totales para Empleados ---
@@ -301,7 +547,7 @@
     };
 
     const consultarDescuentos = async () => {
-        const cedula = document.getElementById('cedula').value.trim();
+        const cedula = extractDigits(document.getElementById('cedula').value);
         const alertId = 'empleado-alert';
         
         document.getElementById(alertId).style.display = 'none';
@@ -310,20 +556,27 @@
         if (!cedula) return showAlert(alertId, 'Ingrese un número de cédula.', 'error');
 
         try {
-            const q = query(collection(db, 'descuentos'), where('cedula', '==', cedula));
-            const snapshot = await getDocs(q);
+            const queries = [getDocs(query(collection(db, 'descuentos'), where('cedula', '==', cedula)))];
+            const cedulaNumerica = Number(cedula);
+            if (Number.isSafeInteger(cedulaNumerica)) {
+                queries.push(getDocs(query(collection(db, 'descuentos'), where('cedula', '==', cedulaNumerica))).catch(() => ({ docs: [] })));
+            }
+            const snapshots = await Promise.all(queries);
+            const uniqueDocs = new Map();
+            snapshots.forEach(snapshot => snapshot.docs.forEach(snapshotDoc => uniqueDocs.set(snapshotDoc.id, snapshotDoc)));
 
-            if (snapshot.empty) {
+            if (!uniqueDocs.size) {
                 return showAlert(alertId, 'No se encontraron registros asociados a esta cédula.', 'error');
             }
 
-            rawData = snapshot.docs.map(d => d.data());
+            rawData = [...uniqueDocs.values()].map(snapshotDoc => snapshotDoc.data());
             document.getElementById('nombre-empleado').textContent = rawData[0].nombre ? `Empleado: ${rawData[0].nombre}` : `Cédula: ${cedula}`;
             
             setupFilters();
             document.getElementById('resultado').style.display = 'block';
         } catch (err) {
-            showAlert(alertId, 'Error de conexión. Verifique su red o las reglas de acceso en Firestore.', 'error');
+            const errorCode = err?.code ? ` (${err.code})` : '';
+            showAlert(alertId, `No se pudo consultar Firestore${errorCode}. Publique firestore.rules y verifique la conexión.`, 'error');
         }
     };
 
@@ -460,13 +713,73 @@
         reader.readAsArrayBuffer(file);
     };
 
+    const procesarPdfs = async () => {
+        const fileInput = document.getElementById('pdf-files');
+        const periodo = document.getElementById('pdf-periodo').value;
+        const files = [...fileInput.files];
+        const alertId = 'admin-alert';
+        if (!periodo) return showAlert(alertId, 'Seleccione el mes de los volantes.', 'error');
+        if (!files.length) return showAlert(alertId, 'Seleccione uno o varios archivos PDF.', 'error');
+        if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador antes de cargar un PDF.', 'error');
+
+        try {
+            let cargados = 0;
+            for (const file of files) {
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) continue;
+                const cedulaMatch = file.name.match(/\d[\d.,\s-]{5,}/);
+                if (!cedulaMatch) {
+                    showAlert(alertId, `No se encontró una cédula en el nombre: ${file.name}`, 'error');
+                    continue;
+                }
+
+                const cedula = cedulaMatch[0].replace(/\D/g, '');
+                if (cedula.length < 6 || cedula.length > 12) {
+                    showAlert(alertId, `La cédula del archivo no es válida: ${file.name}`, 'error');
+                    continue;
+                }
+                const storageReference = ref(storage, `volantes/${periodo}/${cedula}.pdf`);
+                let uploadedFile;
+                try {
+                    uploadedFile = await uploadBytes(storageReference, file, { contentType: 'application/pdf' });
+                } catch (error) {
+                    const reason = error?.code ? ` (${error.code})` : '';
+                    throw new Error(`Storage rechazó ${file.name}${reason}. Publica storage.rules en Firebase Storage.`);
+                }
+                const url = await getDownloadURL(uploadedFile.ref);
+                try {
+                    await setDoc(doc(db, 'volantesPdf', `${periodo}_${cedula}`), {
+                        cedula,
+                        periodo,
+                        nombreArchivo: file.name,
+                        url,
+                        storagePath: uploadedFile.ref.fullPath,
+                        actualizadoEn: new Date().toISOString()
+                    });
+                } catch (error) {
+                    const reason = error?.code ? ` (${error.code})` : '';
+                    throw new Error(`El PDF subió, pero no se pudo registrar en Firestore${reason}. Publica firestore.rules.`);
+                }
+                cargados += 1;
+            }
+
+            if (!cargados) return showAlert(alertId, 'No se cargó ningún PDF. Verifique que el nombre incluya la cédula.', 'error');
+            showAlert(alertId, `${cargados} PDF(s) cargado(s) para ${periodo}.`, 'success');
+            fileInput.value = '';
+        } catch (error) {
+            showAlert(alertId, error.message || 'No se pudo cargar el PDF. Verifique las reglas de Firebase.', 'error');
+        }
+    };
+
     // --- Listeners de Eventos y Manejo de Sesión ---
     document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
+    document.getElementById('btn-tab-documentos').addEventListener('click', () => switchTab('documentos'));
     document.getElementById('btn-tab-admin').addEventListener('click', () => switchTab('admin'));
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
+    document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
     document.getElementById('filter-mes').addEventListener('change', renderTable);
     document.getElementById('sort-monto').addEventListener('change', renderTable);
     document.getElementById('btn-procesar').addEventListener('click', procesarArchivo);
+    document.getElementById('btn-procesar-pdf').addEventListener('click', procesarPdfs);
     document.getElementById('btn-delete-all').addEventListener('click', borrarTodosLosRegistros);
 
     document.getElementById('btn-login').addEventListener('click', async () => {

@@ -1,0 +1,12 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /volantes/{periodo}/{archivo} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.contentType == 'application/pdf'
+        && request.resource.size < 20 * 1024 * 1024;
+    }
+  }
+}

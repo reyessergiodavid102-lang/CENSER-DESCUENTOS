@@ -7,5 +7,15 @@ service cloud.firestore {
       allow read: if true;
       allow create, update, delete: if request.auth != null;
     }
+
+    match /nomina/{recordId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    match /volantesPdf/{recordId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
   }
 }
