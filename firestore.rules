@@ -31,7 +31,7 @@ service cloud.firestore {
       && request.resource.data.monto <= 100000000
       && request.resource.data.estado == 'pendiente'
       && request.resource.data.solicitadoEn is string
-      && request.resource.data.solicitadoEn.matches('^\\d{4}-\\d{2}-\\d{2}T');
+      && request.resource.data.solicitadoEn.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T');
       allow read, update, delete: if request.auth != null;
     }
   }
