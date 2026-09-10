@@ -130,7 +130,7 @@
 <div class="container">
     <div class="header">
         <img src="logo.svg" alt="Censer JR S.A.S">
-        <h1>Consulta de Descuentos Nominativos</h1>
+        <h1>Área de Gestión Administrativa</h1>
         <p>Acceso seguro e instantáneo a tu información laboral</p>
     </div>
 
@@ -269,6 +269,20 @@
                 <h3>Solicitudes de anticipos</h3>
                 <p style="color: var(--muted); font-size: 0.9rem;">Descargue todas las solicitudes registradas para revisarlas en Excel.</p>
                 <button class="btn" id="btn-exportar-anticipos">Descargar Anticipos en Excel</button>
+                <div id="admin-anticipos-section" class="admin-data-container" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cédula</th>
+                                <th>Fecha</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-anticipos-body"></tbody>
+                    </table>
+                </div>
 
                 <!-- Tabla de Edición Manual de Registros -->
                 <div id="admin-records-section" class="admin-data-container" style="display: none;">
@@ -294,11 +308,18 @@
     </div>
 </div>
 
+<script>
+    window.__SUPABASE_CONFIG__ = {
+        url: 'https://raduchpwfnupjgeylial.supabase.co',
+        anonKey: 'sb_publishable__2ubp3p17GcpoQBqQgUj1g_9gFwVhC9'
+    };
+</script>
+
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
     import { getFirestore, collection, getDocs, query, where, writeBatch, doc, setDoc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     const firebaseConfig = {
         apiKey: 'AIzaSyCUAOJDAnRt0P6ZA6QypqsB-UXifddMQi0',
@@ -312,7 +333,14 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app, 'gs://censer-descuentos.firebasestorage.app');
+    const supabaseConfig = window.__SUPABASE_CONFIG__ || {
+        url: '',
+        anonKey: ''
+    };
+    const supabase = supabaseConfig.url && supabaseConfig.anonKey
+        ? createClient(supabaseConfig.url, supabaseConfig.anonKey)
+        : null;
+    const supabaseBucket = 'volantes';
 
     let rawData = [];
     let nominaData = [];
@@ -519,14 +547,18 @@
         document.getElementById(alertId).style.display = 'none';
         document.getElementById('documentos-resultado').style.display = 'none';
         if (!cedula) return showAlert(alertId, 'Ingrese un número de cédula.', 'error');
+        if (!supabase) return showAlert(alertId, 'Configure la URL y la clave pública de Supabase para consultar volantes.', 'error');
 
         try {
             const [nominaSnapshot, pdfSnapshot] = await Promise.all([
                 getDocs(query(collection(db, 'nomina'), where('cedula', '==', cedula))),
-                getDocs(query(collection(db, 'volantesPdf'), where('cedula', '==', cedula)))
+                supabase
+                    ? supabase.from('volantes_pdf').select('*').eq('cedula', cedula)
+                    : Promise.resolve({ data: [], error: null })
             ]);
             nominaData = nominaSnapshot.docs.map(snapshotDoc => snapshotDoc.data());
-            pdfData = pdfSnapshot.docs.map(snapshotDoc => snapshotDoc.data());
+            if (pdfSnapshot.error) throw pdfSnapshot.error;
+            pdfData = pdfSnapshot.data || [];
             const filteredNomina = periodo ? nominaData.filter(record => record.periodo === periodo || normalizeText(record.periodo).includes(normalizeText(periodo))) : nominaData;
             const filteredPdf = periodo ? pdfData.filter(record => record.periodo === periodo) : pdfData;
             if (!filteredNomina.length && !filteredPdf.length) return showAlert(alertId, 'No se encontraron documentos para la cédula y el mes seleccionado.', 'error');
@@ -535,7 +567,7 @@
             document.getElementById('documentos-lista').innerHTML = [...filteredPdf.map(renderPdf), ...filteredNomina.map(renderDocument)].join('');
             document.getElementById('documentos-resultado').style.display = 'block';
         } catch (error) {
-            showAlert(alertId, 'Error al consultar los documentos. Verifique la conexión o las reglas de Firestore.', 'error');
+            showAlert(alertId, 'Error al consultar los documentos. Verifique la conexión, la tabla y las políticas de Supabase.', 'error');
         }
     };
 
@@ -675,6 +707,62 @@
         } catch (error) {
             const reason = error?.code ? ` (${error.code})` : '';
             showAlert('admin-alert', `No se pudieron descargar las solicitudes de anticipos${reason}. Verifique las reglas de Firebase.`, 'error');
+        }
+    };
+
+    const loadAdminAnticipos = async () => {
+        const tbody = document.getElementById('admin-anticipos-body');
+        const container = document.getElementById('admin-anticipos-section');
+
+        try {
+            const snapshot = await getDocs(collection(db, 'anticipos'));
+            tbody.innerHTML = '';
+            if (snapshot.empty) {
+                container.style.display = 'none';
+                return;
+            }
+
+            snapshot.docs.forEach(docSnap => {
+                const item = docSnap.data();
+                const tr = document.createElement('tr');
+                const cells = [
+                    item.cedula || '',
+                    item.fecha || '',
+                    `$${Number(item.monto || 0).toLocaleString('es-CO')}`,
+                    item.estado || 'pendiente'
+                ];
+
+                cells.forEach(value => {
+                    const td = document.createElement('td');
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+
+                const actions = document.createElement('td');
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'action-btn delete-btn';
+                deleteButton.textContent = 'Borrar';
+                deleteButton.addEventListener('click', () => borrarAnticipo(docSnap.id));
+                actions.appendChild(deleteButton);
+                tr.appendChild(actions);
+                tbody.appendChild(tr);
+            });
+
+            container.style.display = 'block';
+        } catch (error) {
+            showAlert('admin-alert', 'No se pudieron cargar las solicitudes de anticipos.', 'error');
+        }
+    };
+
+    const borrarAnticipo = async (id) => {
+        if (!confirm('¿Desea borrar esta solicitud de anticipo?')) return;
+
+        try {
+            await deleteDoc(doc(db, 'anticipos', id));
+            showAlert('admin-alert', 'Solicitud de anticipo eliminada.', 'success');
+            loadAdminAnticipos();
+        } catch (error) {
+            showAlert('admin-alert', 'Error al borrar la solicitud de anticipo.', 'error');
         }
     };
 
@@ -819,6 +907,7 @@
         if (!periodo) return showAlert(alertId, 'Seleccione el mes de los volantes.', 'error');
         if (!files.length) return showAlert(alertId, 'Seleccione uno o varios archivos PDF.', 'error');
         if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador antes de cargar un PDF.', 'error');
+        if (!supabase) return showAlert(alertId, 'Configure la URL y la clave pública de Supabase antes de cargar volantes.', 'error');
 
         try {
             let cargados = 0;
@@ -835,27 +924,28 @@
                     showAlert(alertId, `La cédula del archivo no es válida: ${file.name}`, 'error');
                     continue;
                 }
-                const storageReference = ref(storage, `volantes/${periodo}/${cedula}.pdf`);
-                let uploadedFile;
+                const storagePath = `${periodo}/${cedula}.pdf`;
                 try {
-                    uploadedFile = await uploadBytes(storageReference, file, { contentType: 'application/pdf' });
+                    const { error } = await supabase.storage
+                        .from(supabaseBucket)
+                        .upload(storagePath, file, { contentType: 'application/pdf', upsert: true });
+                    if (error) throw error;
                 } catch (error) {
-                    const reason = error?.code ? ` (${error.code})` : '';
-                    throw new Error(`Storage rechazó ${file.name}${reason}. Publica storage.rules en Firebase Storage.`);
+                    throw new Error(`Supabase Storage rechazó ${file.name}: ${error.message || 'verifique el bucket y sus políticas.'}`);
                 }
-                const url = await getDownloadURL(uploadedFile.ref);
+                const { data: publicUrlData } = supabase.storage.from(supabaseBucket).getPublicUrl(storagePath);
                 try {
-                    await setDoc(doc(db, 'volantesPdf', `${periodo}_${cedula}`), {
+                    const { error } = await supabase.from('volantes_pdf').upsert({
                         cedula,
                         periodo,
                         nombreArchivo: file.name,
-                        url,
-                        storagePath: uploadedFile.ref.fullPath,
-                        actualizadoEn: new Date().toISOString()
-                    });
+                        url: publicUrlData.publicUrl,
+                        storage_path: storagePath,
+                        actualizado_en: new Date().toISOString()
+                    }, { onConflict: 'periodo,cedula' });
+                    if (error) throw error;
                 } catch (error) {
-                    const reason = error?.code ? ` (${error.code})` : '';
-                    throw new Error(`El PDF subió, pero no se pudo registrar en Firestore${reason}. Publica firestore.rules.`);
+                    throw new Error(`El PDF subió, pero no se pudo registrar en Supabase: ${error.message || 'verifique la tabla y sus políticas.'}`);
                 }
                 cargados += 1;
             }
@@ -864,7 +954,7 @@
             showAlert(alertId, `${cargados} PDF(s) cargado(s) para ${periodo}.`, 'success');
             fileInput.value = '';
         } catch (error) {
-            showAlert(alertId, error.message || 'No se pudo cargar el PDF. Verifique las reglas de Firebase.', 'error');
+            showAlert(alertId, error.message || 'No se pudo cargar el PDF en Supabase.', 'error');
         }
     };
 
@@ -898,7 +988,10 @@
     onAuthStateChanged(auth, user => {
         document.getElementById('admin-login-form').style.display = user ? 'none' : 'block';
         document.getElementById('admin-panel').style.display = user ? 'block' : 'none';
-        if (user) loadAdminRecords();
+        if (user) {
+            loadAdminRecords();
+            loadAdminAnticipos();
+        }
     });
 </script>
 </body>
