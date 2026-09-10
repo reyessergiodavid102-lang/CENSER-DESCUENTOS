@@ -265,6 +265,11 @@
                 <button class="btn btn-secondary" id="btn-logout">Cerrar Sesión</button>
                 <div id="admin-alert" class="alert"></div>
 
+                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
+                <h3>Solicitudes de anticipos</h3>
+                <p style="color: var(--muted); font-size: 0.9rem;">Descargue todas las solicitudes registradas para revisarlas en Excel.</p>
+                <button class="btn" id="btn-exportar-anticipos">Descargar Anticipos en Excel</button>
+
                 <!-- Tabla de Edición Manual de Registros -->
                 <div id="admin-records-section" class="admin-data-container" style="display: none;">
                     <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
@@ -631,6 +636,44 @@
         }
     };
 
+    const exportarAnticipos = async () => {
+        if (!auth.currentUser) return showAlert('admin-alert', 'Debe iniciar sesión como administrador.', 'error');
+
+        try {
+            const snapshot = await getDocs(collection(db, 'anticipos'));
+            if (snapshot.empty) return showAlert('admin-alert', 'No hay solicitudes de anticipos para descargar.', 'error');
+
+            const rows = snapshot.docs.map(snapshotDoc => {
+                const item = snapshotDoc.data();
+                const solicitadoEn = item.solicitadoEn?.toDate
+                    ? item.solicitadoEn.toDate().toLocaleString('es-CO')
+                    : '';
+                return {
+                    'Número de Cédula': item.cedula || '',
+                    'Fecha del Anticipo': item.fecha || '',
+                    'Monto Solicitado': Number(item.monto || 0),
+                    'Estado': item.estado || 'pendiente',
+                    'Fecha de Solicitud': solicitadoEn
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(rows);
+            worksheet['!cols'] = [
+                { wch: 20 },
+                { wch: 20 },
+                { wch: 20 },
+                { wch: 16 },
+                { wch: 24 }
+            ];
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Anticipos');
+            XLSX.writeFile(workbook, `solicitudes-anticipos-${new Date().toISOString().slice(0, 10)}.xlsx`);
+            showAlert('admin-alert', `${rows.length} solicitud(es) descargada(s) en Excel.`, 'success');
+        } catch (error) {
+            showAlert('admin-alert', 'No se pudieron descargar las solicitudes de anticipos.', 'error');
+        }
+    };
+
     // --- Funciones de Modificación y Gestión de Administrador ---
     const loadAdminRecords = async () => {
         const tbody = document.getElementById('admin-table-body');
@@ -833,6 +876,7 @@
     document.getElementById('sort-monto').addEventListener('change', renderTable);
     document.getElementById('btn-procesar').addEventListener('click', procesarArchivo);
     document.getElementById('btn-procesar-pdf').addEventListener('click', procesarPdfs);
+    document.getElementById('btn-exportar-anticipos').addEventListener('click', exportarAnticipos);
     document.getElementById('btn-delete-all').addEventListener('click', borrarTodosLosRegistros);
 
     document.getElementById('btn-login').addEventListener('click', async () => {
