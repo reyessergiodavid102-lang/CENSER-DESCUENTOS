@@ -137,6 +137,7 @@
     <div class="workspace">
         <div class="tabs">
             <button class="tab-btn active" id="btn-tab-empleado">Consulta Empleado</button>
+            <button class="tab-btn" id="btn-tab-anticipo">Solicitar Anticipo</button>
             <button class="tab-btn" id="btn-tab-documentos">Volantes y Tirillas</button>
             <button class="tab-btn" id="btn-tab-admin">Administrador</button>
         </div>
@@ -188,6 +189,24 @@
                     <tbody id="tabla-descuentos"></tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- Solicitud de Anticipo -->
+        <div id="tab-anticipo" class="tab-content">
+            <div class="form-group">
+                <label for="anticipo-cedula">Número de Cédula:</label>
+                <input type="text" id="anticipo-cedula" placeholder="Ej: 123456789" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="anticipo-fecha">Fecha del Anticipo:</label>
+                <input type="date" id="anticipo-fecha">
+            </div>
+            <div class="form-group">
+                <label for="anticipo-monto">Monto Solicitado:</label>
+                <input type="number" id="anticipo-monto" placeholder="Ej: 500000" min="1" step="1000" inputmode="numeric">
+            </div>
+            <button class="btn" id="btn-solicitar-anticipo">Enviar Solicitud</button>
+            <div id="anticipo-alert" class="alert"></div>
         </div>
 
         <!-- Consulta de Volantes y Tirillas -->
@@ -273,7 +292,7 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, setDoc, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
 
     const firebaseConfig = {
@@ -301,6 +320,9 @@
         if (activeTab === 'empleado') {
             document.getElementById('btn-tab-empleado').classList.add('active');
             document.getElementById('tab-empleado').classList.add('active');
+        } else if (activeTab === 'anticipo') {
+            document.getElementById('btn-tab-anticipo').classList.add('active');
+            document.getElementById('tab-anticipo').classList.add('active');
         } else if (activeTab === 'documentos') {
             document.getElementById('btn-tab-documentos').classList.add('active');
             document.getElementById('tab-documentos').classList.add('active');
@@ -580,6 +602,35 @@
         }
     };
 
+    const solicitarAnticipo = async () => {
+        const cedula = extractDigits(document.getElementById('anticipo-cedula').value);
+        const fecha = document.getElementById('anticipo-fecha').value;
+        const monto = Number(document.getElementById('anticipo-monto').value);
+        const alertId = 'anticipo-alert';
+
+        document.getElementById(alertId).style.display = 'none';
+        if (cedula.length < 6 || cedula.length > 12) return showAlert(alertId, 'Ingrese un número de cédula válido.', 'error');
+        if (!fecha) return showAlert(alertId, 'Seleccione la fecha del anticipo.', 'error');
+        if (!Number.isFinite(monto) || monto <= 0) return showAlert(alertId, 'Ingrese un monto válido mayor que cero.', 'error');
+        if (monto > 100000000) return showAlert(alertId, 'El monto no puede superar $100.000.000.', 'error');
+
+        try {
+            await addDoc(collection(db, 'anticipos'), {
+                cedula,
+                fecha,
+                monto,
+                estado: 'pendiente',
+                solicitadoEn: serverTimestamp()
+            });
+            showAlert(alertId, 'Solicitud enviada correctamente. Será revisada por administración.', 'success');
+            document.getElementById('anticipo-cedula').value = '';
+            document.getElementById('anticipo-fecha').value = '';
+            document.getElementById('anticipo-monto').value = '';
+        } catch (error) {
+            showAlert(alertId, 'No se pudo enviar la solicitud. Verifique la conexión e inténtelo de nuevo.', 'error');
+        }
+    };
+
     // --- Funciones de Modificación y Gestión de Administrador ---
     const loadAdminRecords = async () => {
         const tbody = document.getElementById('admin-table-body');
@@ -772,10 +823,12 @@
 
     // --- Listeners de Eventos y Manejo de Sesión ---
     document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
+    document.getElementById('btn-tab-anticipo').addEventListener('click', () => switchTab('anticipo'));
     document.getElementById('btn-tab-documentos').addEventListener('click', () => switchTab('documentos'));
     document.getElementById('btn-tab-admin').addEventListener('click', () => switchTab('admin'));
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
+    document.getElementById('btn-solicitar-anticipo').addEventListener('click', solicitarAnticipo);
     document.getElementById('filter-mes').addEventListener('change', renderTable);
     document.getElementById('sort-monto').addEventListener('change', renderTable);
     document.getElementById('btn-procesar').addEventListener('click', procesarArchivo);
