@@ -297,7 +297,7 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, setDoc, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, setDoc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
 
     const firebaseConfig = {
@@ -625,14 +625,15 @@
                 fecha,
                 monto,
                 estado: 'pendiente',
-                solicitadoEn: serverTimestamp()
+                solicitadoEn: new Date().toISOString()
             });
             showAlert(alertId, 'Solicitud enviada correctamente. Será revisada por administración.', 'success');
             document.getElementById('anticipo-cedula').value = '';
             document.getElementById('anticipo-fecha').value = '';
             document.getElementById('anticipo-monto').value = '';
         } catch (error) {
-            showAlert(alertId, 'No se pudo enviar la solicitud. Verifique la conexión e inténtelo de nuevo.', 'error');
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert(alertId, `No se pudo enviar la solicitud${reason}. Verifique que las reglas de Firebase estén publicadas.`, 'error');
         }
     };
 
@@ -647,7 +648,9 @@
                 const item = snapshotDoc.data();
                 const solicitadoEn = item.solicitadoEn?.toDate
                     ? item.solicitadoEn.toDate().toLocaleString('es-CO')
-                    : '';
+                    : item.solicitadoEn
+                        ? new Date(item.solicitadoEn).toLocaleString('es-CO')
+                        : '';
                 return {
                     'Número de Cédula': item.cedula || '',
                     'Fecha del Anticipo': item.fecha || '',
@@ -670,7 +673,8 @@
             XLSX.writeFile(workbook, `solicitudes-anticipos-${new Date().toISOString().slice(0, 10)}.xlsx`);
             showAlert('admin-alert', `${rows.length} solicitud(es) descargada(s) en Excel.`, 'success');
         } catch (error) {
-            showAlert('admin-alert', 'No se pudieron descargar las solicitudes de anticipos.', 'error');
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert('admin-alert', `No se pudieron descargar las solicitudes de anticipos${reason}. Verifique las reglas de Firebase.`, 'error');
         }
     };
 
