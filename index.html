@@ -513,6 +513,7 @@
     });
 
     const extractDigits = value => String(value || '').replace(/\D/g, '');
+    const normalizeCedula = value => extractDigits(value);
 
     const getPeriodFromSheet = sheetName => {
         const normalized = normalizeText(sheetName).replace(/^(VOLANTES?|TIRILLAS?)\s*/, '').trim();
@@ -739,7 +740,7 @@
         const snapshots = await Promise.all(queries);
         const uniqueDocs = new Map();
         snapshots.forEach(snapshot => snapshot.docs.forEach(docSnap => uniqueDocs.set(docSnap.id, docSnap.data())));
-        return [...uniqueDocs.values()];
+        return [...uniqueDocs.values()].filter(item => normalizeCedula(item.cedula) === cedula);
     };
 
     const consultarRodamiento = async () => {
@@ -1187,13 +1188,13 @@
 
                 const rows = json.filter(row => {
                     const normalized = getNormalizedRow(row);
-                    const cedula = String(
+                    const cedula = normalizeCedula(
                         normalized.cedula ||
                         normalized.cc ||
                         normalized.documento ||
                         normalized.identificacion ||
                         ''
-                    ).trim();
+                    );
                     const nombre = String(
                         normalized.nombre ||
                         normalized.nombres ||
@@ -1225,13 +1226,13 @@
 
                 rows.forEach((row) => {
                     const normalized = getNormalizedRow(row);
-                    const cedula = String(
+                    const cedula = normalizeCedula(
                         normalized.cedula ||
                         normalized.cc ||
                         normalized.documento ||
                         normalized.identificacion ||
                         ''
-                    ).trim();
+                    );
                     const nombre = String(
                         normalized.nombre ||
                         normalized.nombres ||
