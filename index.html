@@ -290,13 +290,13 @@
             <div id="rodamiento-resultado" class="result-box" style="display: none;">
                 <h3 id="nombre-rodamiento"></h3>
                 <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0;">
-                    Se toma solo <strong>Pago de Rodamiento</strong> como día activo en verde. Si aparece <strong>Asistencia</strong> sin pago, se marca en amarillo para diferenciarlo; si no hay registro, queda en rojo.
+                    Se toma solo <strong>Pago de Rodamiento</strong> como día activo en verde. Si aparece <strong>Asistencia</strong> sin pago, se marca en amarillo; si no hay registro, queda en rojo. Los registros de domingos y festivos también se muestran.
                 </p>
                 <div class="rodamiento-legend" aria-label="Leyenda del estado del rodamiento">
                     <span class="rodamiento-legend-item"><span class="rodamiento-dot green"></span>Pago de Rodamiento</span>
                     <span class="rodamiento-legend-item"><span class="rodamiento-dot yellow"></span>Asistencia</span>
                     <span class="rodamiento-legend-item"><span class="rodamiento-dot red"></span>Sin registro</span>
-                    <span class="rodamiento-legend-item"><span class="rodamiento-dot disabled"></span>Domingos/Festivos</span>
+                    <span class="rodamiento-legend-item"><span class="rodamiento-dot disabled"></span>Domingos/Festivos sin registro</span>
                 </div>
                 <div class="total-card">
                     <span>Días de rodamiento activos:</span>
@@ -732,15 +732,10 @@
     };
 
     const getRodamientoRecords = async (cedula) => {
-        const queries = [getDocs(query(collection(db, 'rodamiento'), where('cedula', '==', cedula)))];
-        const numericCedula = Number(cedula);
-        if (Number.isSafeInteger(numericCedula)) {
-            queries.push(getDocs(query(collection(db, 'rodamiento'), where('cedula', '==', numericCedula))).catch(() => ({ docs: [] })));
-        }
-        const snapshots = await Promise.all(queries);
-        const uniqueDocs = new Map();
-        snapshots.forEach(snapshot => snapshot.docs.forEach(docSnap => uniqueDocs.set(docSnap.id, docSnap.data())));
-        return [...uniqueDocs.values()].filter(item => normalizeCedula(item.cedula) === cedula);
+        const snapshot = await getDocs(collection(db, 'rodamiento'));
+        return snapshot.docs
+            .map(docSnap => docSnap.data())
+            .filter(item => normalizeCedula(item.cedula) === cedula);
     };
 
     const consultarRodamiento = async () => {
@@ -788,11 +783,6 @@
                 const isSunday = currentDate.getUTCDay() === 0;
                 const isHoliday = feriados.has(isoDate);
 
-                if (isSunday || isHoliday) {
-                    cells.push(`<div class="rodamiento-day disabled"><span class="dia-nombre">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][currentDate.getUTCDay()]}</span><span class="dia-numero">${day}</span></div>`);
-                    continue;
-                }
-
                 const hasPago = diasPagoRodamiento.has(isoDate);
                 const hasAsistencia = diasAsistencia.has(isoDate);
                 let cssClass = 'red';
@@ -801,6 +791,8 @@
                     totalPositivo += 1;
                 } else if (hasAsistencia) {
                     cssClass = 'yellow';
+                } else if (isSunday || isHoliday) {
+                    cssClass = 'disabled';
                 }
 
                 cells.push(`
@@ -1278,13 +1270,23 @@
     };
 
     const normalizeDateEs = (value) => {
+        if (value instanceof Date && !Number.isNaN(value.getTime())) {
+            return value.toISOString().slice(0, 10);
+        }
+
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+            const jsDate = new Date(excelEpoch.getTime() + Math.floor(value) * 86400000);
+            return jsDate.toISOString().slice(0, 10);
+        }
+
         const text = String(value).trim();
 
-        if (/^\d+$/.test(text)) {
+        if (/^\d+(?:\.\d+)?$/.test(text)) {
             const numericDate = Number(text);
             if (Number.isFinite(numericDate)) {
                 const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-                const jsDate = new Date(excelEpoch.getTime() + numericDate * 86400000);
+                const jsDate = new Date(excelEpoch.getTime() + Math.floor(numericDate) * 86400000);
                 return jsDate.toISOString().slice(0, 10);
             }
         }
