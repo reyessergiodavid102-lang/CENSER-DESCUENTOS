@@ -112,6 +112,71 @@
         .pdf-card .btn { width: auto; padding: 9px 14px; text-decoration: none; white-space: nowrap; }
         @media (max-width: 600px) { .pdf-card { align-items: stretch; flex-direction: column; } .pdf-card .btn { width: 100%; } }
 
+        .rodamiento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .rodamiento-day {
+            min-height: 62px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-weight: 700;
+            color: var(--ink);
+            padding: 10px 6px;
+            text-align: center;
+        }
+        .rodamiento-day .dia-nombre {
+            font-size: .62rem;
+            opacity: .75;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .rodamiento-day .dia-numero {
+            font-size: 1.1rem;
+            line-height: 1;
+            margin-top: 4px;
+        }
+        .rodamiento-day.green { background: #eafaf0; border-color: #a9e4b7; color: #14623b; }
+        .rodamiento-day.yellow { background: #fff8d9; border-color: #f1db73; color: #7a5a00; }
+        .rodamiento-day.red { background: #fff1f1; border-color: #f0c1c1; color: #8b2024; }
+        .rodamiento-day.disabled { background: #f6f7f6; border-color: #e5eae5; color: var(--muted); opacity: .7; }
+
+        .rodamiento-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 14px 0 8px;
+            font-size: .82rem;
+            color: var(--muted);
+        }
+        .rodamiento-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f9faf9;
+            border: 1px solid var(--line);
+        }
+        .rodamiento-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 1px solid rgba(0,0,0,.08);
+        }
+        .rodamiento-dot.green { background: #a9e4b7; }
+        .rodamiento-dot.yellow { background: #f1db73; }
+        .rodamiento-dot.red { background: #f0c1c1; }
+        .rodamiento-dot.disabled { background: #dfe7df; }
+
         .alert { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: .9rem; }
         .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
         .alert-success { color: #14623b; background: #eef9f1; border: 1px solid #bfdfc8; }
@@ -138,6 +203,7 @@
         <div class="tabs">
             <button class="tab-btn active" id="btn-tab-empleado">Consulta Empleado</button>
             <button class="tab-btn" id="btn-tab-anticipo">Solicitar Anticipo</button>
+            <button class="tab-btn" id="btn-tab-rodamiento">Rodamiento</button>
             <button class="tab-btn" id="btn-tab-documentos">Volantes y Tirillas</button>
             <button class="tab-btn" id="btn-tab-admin">Administrador</button>
         </div>
@@ -209,6 +275,37 @@
             <div id="anticipo-alert" class="alert"></div>
         </div>
 
+        <!-- Rodamiento -->
+        <div id="tab-rodamiento" class="tab-content">
+            <div class="form-group">
+                <label for="cedula-rodamiento">Número de Cédula:</label>
+                <input type="text" id="cedula-rodamiento" placeholder="Ej: 123456789" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="mes-rodamiento">Mes de consulta:</label>
+                <input type="month" id="mes-rodamiento">
+            </div>
+            <button class="btn" id="btn-consultar-rodamiento">Consultar Rodamiento</button>
+            <div id="rodamiento-alert" class="alert"></div>
+            <div id="rodamiento-resultado" class="result-box" style="display: none;">
+                <h3 id="nombre-rodamiento"></h3>
+                <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0;">
+                    Se toma solo <strong>Pago de Rodamiento</strong> como día activo en verde. Si aparece <strong>Asistencia</strong> sin pago, se marca en amarillo para diferenciarlo; si no hay registro, queda en rojo.
+                </p>
+                <div class="rodamiento-legend" aria-label="Leyenda del estado del rodamiento">
+                    <span class="rodamiento-legend-item"><span class="rodamiento-dot green"></span>Pago de Rodamiento</span>
+                    <span class="rodamiento-legend-item"><span class="rodamiento-dot yellow"></span>Asistencia</span>
+                    <span class="rodamiento-legend-item"><span class="rodamiento-dot red"></span>Sin registro</span>
+                    <span class="rodamiento-legend-item"><span class="rodamiento-dot disabled"></span>Domingos/Festivos</span>
+                </div>
+                <div class="total-card">
+                    <span>Días de rodamiento activos:</span>
+                    <h3 id="rodamiento-total">0</h3>
+                </div>
+                <div id="rodamiento-grid" class="rodamiento-grid"></div>
+            </div>
+        </div>
+
         <!-- Consulta de Volantes y Tirillas -->
         <div id="tab-documentos" class="tab-content">
             <div class="form-group">
@@ -252,6 +349,14 @@
                 <button class="btn" id="btn-procesar">Cargar Datos Masivos</button>
 
                 <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
+                <h3>Cargar Base de Rodamiento</h3>
+                <p style="color: var(--muted); font-size: 0.9rem;">Suba un archivo (.xlsx o .csv) con las columnas: <strong>fecha, cedula, nombre, descripcion</strong>. Ejemplo: <strong>06/08/2026, 123456789, Carlos, Pago de Rodamiento</strong>.</p>
+                <div class="form-group">
+                    <input type="file" id="rodamiento-file" accept=".xlsx, .xls, .csv">
+                </div>
+                <button class="btn" id="btn-procesar-rodamiento">Cargar Datos de Rodamiento</button>
+
+                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
                 <h3>Cargar volantes en PDF</h3>
                 <p style="color: var(--muted); font-size: 0.9rem;">Seleccione el mes y uno o varios PDF. Cada archivo debe corresponder a un empleado y tener la cédula en el nombre, por ejemplo: <strong>479511_Carlos.pdf</strong>.</p>
                 <div class="form-group">
@@ -269,6 +374,7 @@
                 <h3>Solicitudes de anticipos</h3>
                 <p style="color: var(--muted); font-size: 0.9rem;">Descargue todas las solicitudes registradas para revisarlas en Excel.</p>
                 <button class="btn" id="btn-exportar-anticipos">Descargar Anticipos en Excel</button>
+                <button class="btn btn-danger" id="btn-delete-all-anticipos">Borrar Todos los Anticipos</button>
                 <div id="admin-anticipos-section" class="admin-data-container" style="display: none;">
                     <table>
                         <thead>
@@ -356,6 +462,9 @@
         } else if (activeTab === 'anticipo') {
             document.getElementById('btn-tab-anticipo').classList.add('active');
             document.getElementById('tab-anticipo').classList.add('active');
+        } else if (activeTab === 'rodamiento') {
+            document.getElementById('btn-tab-rodamiento').classList.add('active');
+            document.getElementById('tab-rodamiento').classList.add('active');
         } else if (activeTab === 'documentos') {
             document.getElementById('btn-tab-documentos').classList.add('active');
             document.getElementById('tab-documentos').classList.add('active');
@@ -571,6 +680,146 @@
         }
     };
 
+    const getColombianHolidays = year => {
+        const holidaySet = new Set();
+        const pad = value => String(value).padStart(2, '0');
+
+        const easter = new Date(Date.UTC(year, 2, 22));
+        const easterSunday = new Date(Date.UTC(year, 2, 22));
+        const daysSinceMarch22 = (() => {
+            const t = new Date(year, 2, 22);
+            // Fórmula de Meeus/Jones/Butcher para calcular Pascua del año dado.
+            const a = year % 19;
+            const b = Math.floor(year / 100);
+            const c = year % 100;
+            const d = Math.floor(b / 4);
+            const e = b % 4;
+            const f = Math.floor((b + 8) / 25);
+            const g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30;
+            const i = Math.floor(c / 4);
+            const k = c % 4;
+            const l = (32 + 2 * e + 2 * i - h - k) % 7;
+            const m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+            const day = ((h + l - 7 * m + 114) % 31) + 1;
+            return new Date(Date.UTC(year, month, day));
+        })();
+
+        const holyThursday = new Date(daysSinceMarch22.getTime() - (4 * 24 * 60 * 60 * 1000));
+        const goodFriday = new Date(daysSinceMarch22.getTime() - (2 * 24 * 60 * 60 * 1000));
+        const corpusChristi = new Date(daysSinceMarch22.getTime() + (60 * 24 * 60 * 60 * 1000));
+        const ascension = new Date(daysSinceMarch22.getTime() + (39 * 24 * 60 * 60 * 1000));
+
+        const fixed = [
+            [year, 0, 1],
+            [year, 4, 1],
+            [year, 5, 20],
+            [year, 6, 29],
+            [year, 7, 20],
+            [year, 10, 7],
+            [year, 11, 8],
+            [year, 11, 25]
+        ];
+
+        fixed.forEach(([y, m, d]) => holidaySet.add(`${y}-${pad(m + 1)}-${pad(d)}`));
+        [holyThursday, goodFriday, corpusChristi, ascension].forEach(date => {
+            holidaySet.add(`${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`);
+        });
+
+        return holidaySet;
+    };
+
+    const getRodamientoRecords = async (cedula) => {
+        const queries = [getDocs(query(collection(db, 'rodamiento'), where('cedula', '==', cedula)))];
+        const numericCedula = Number(cedula);
+        if (Number.isSafeInteger(numericCedula)) {
+            queries.push(getDocs(query(collection(db, 'rodamiento'), where('cedula', '==', numericCedula))).catch(() => ({ docs: [] })));
+        }
+        const snapshots = await Promise.all(queries);
+        const uniqueDocs = new Map();
+        snapshots.forEach(snapshot => snapshot.docs.forEach(docSnap => uniqueDocs.set(docSnap.id, docSnap.data())));
+        return [...uniqueDocs.values()];
+    };
+
+    const consultarRodamiento = async () => {
+        const cedula = extractDigits(document.getElementById('cedula-rodamiento').value);
+        const periodo = document.getElementById('mes-rodamiento').value;
+        const alertId = 'rodamiento-alert';
+        document.getElementById(alertId).style.display = 'none';
+        document.getElementById('rodamiento-resultado').style.display = 'none';
+
+        if (!cedula) return showAlert(alertId, 'Ingrese un número de cédula.', 'error');
+        if (!periodo) return showAlert(alertId, 'Seleccione el mes para consultar el rodamiento.', 'error');
+
+        try {
+            const registros = await getRodamientoRecords(cedula);
+            const mesSeleccionado = periodo;
+            const [year, month] = mesSeleccionado.split('-').map(Number);
+            const diasMes = new Date(year, month, 0).getDate();
+            const feriados = getColombianHolidays(year);
+            const diasPagoRodamiento = new Set();
+            const diasAsistencia = new Set();
+
+            registros.forEach(item => {
+                const rawFecha = item.fecha ? String(item.fecha).trim() : '';
+                const descripcion = String(item.descripcion || item.DESCRIPCION || '').trim().toLowerCase();
+
+                if (!rawFecha) return;
+                const fecha = normalizeDateEs(rawFecha);
+                const fechaMes = fecha.slice(0, 7);
+                if (fechaMes !== periodo) return;
+
+                if (descripcion.includes('pago de rodamiento') || descripcion.includes('rodamiento')) {
+                    diasPagoRodamiento.add(fecha);
+                } else if (descripcion.includes('asistencia')) {
+                    diasAsistencia.add(fecha);
+                }
+            });
+
+            const grid = document.getElementById('rodamiento-grid');
+            const cells = [];
+            let totalPositivo = 0;
+
+            for (let day = 1; day <= diasMes; day += 1) {
+                const currentDate = new Date(Date.UTC(year, month - 1, day));
+                const isoDate = `${currentDate.getUTCFullYear()}-${String(currentDate.getUTCMonth() + 1).padStart(2, '0')}-${String(currentDate.getUTCDate()).padStart(2, '0')}`;
+                const isSunday = currentDate.getUTCDay() === 0;
+                const isHoliday = feriados.has(isoDate);
+
+                if (isSunday || isHoliday) {
+                    cells.push(`<div class="rodamiento-day disabled"><span class="dia-nombre">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][currentDate.getUTCDay()]}</span><span class="dia-numero">${day}</span></div>`);
+                    continue;
+                }
+
+                const hasPago = diasPagoRodamiento.has(isoDate);
+                const hasAsistencia = diasAsistencia.has(isoDate);
+                let cssClass = 'red';
+                if (hasPago) {
+                    cssClass = 'green';
+                    totalPositivo += 1;
+                } else if (hasAsistencia) {
+                    cssClass = 'yellow';
+                }
+
+                cells.push(`
+                    <div class="rodamiento-day ${cssClass}">
+                        <span class="dia-nombre">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][currentDate.getUTCDay()]}</span>
+                        <span class="dia-numero">${day}</span>
+                    </div>
+                `);
+            }
+
+            const nombre = registros[0]?.nombre || 'Empleado';
+            document.getElementById('nombre-rodamiento').textContent = `Empleado: ${nombre} | Cédula: ${cedula}`;
+            document.getElementById('rodamiento-total').textContent = totalPositivo;
+            grid.innerHTML = cells.join('');
+            document.getElementById('rodamiento-resultado').style.display = 'block';
+        } catch (error) {
+            showAlert(alertId, 'No se pudo consultar el rodamiento. Verifique la conexión con Firestore.', 'error');
+        }
+    };
+
     // --- Rendimiento y Cálculo de Totales para Empleados ---
     const renderTable = () => {
         const selectedMes = document.getElementById('filter-mes').value;
@@ -766,6 +1015,26 @@
         }
     };
 
+    const borrarTodosLosAnticipos = async () => {
+        if (!confirm('¿Está seguro de eliminar TODOS los anticipos?')) return;
+
+        try {
+            const snapshot = await getDocs(collection(db, 'anticipos'));
+            if (snapshot.empty) return showAlert('admin-alert', 'No hay anticipos para borrar.', 'error');
+
+            for (let start = 0; start < snapshot.docs.length; start += 450) {
+                const batch = writeBatch(db);
+                snapshot.docs.slice(start, start + 450).forEach(snapshotDoc => batch.delete(snapshotDoc.ref));
+                await batch.commit();
+            }
+
+            showAlert('admin-alert', 'Todos los anticipos fueron eliminados.', 'success');
+            loadAdminAnticipos();
+        } catch (error) {
+            showAlert('admin-alert', 'Error al borrar todos los anticipos.', 'error');
+        }
+    };
+
     // --- Funciones de Modificación y Gestión de Administrador ---
     const loadAdminRecords = async () => {
         const tbody = document.getElementById('admin-table-body');
@@ -899,10 +1168,167 @@
         reader.readAsArrayBuffer(file);
     };
 
+    const procesarRodamiento = async () => {
+        const fileInput = document.getElementById('rodamiento-file');
+        const file = fileInput.files[0];
+        const alertId = 'admin-alert';
+
+        if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador antes de cargar datos de rodamiento.', 'error');
+        if (!file) return showAlert(alertId, 'Seleccione un archivo Excel o CSV de rodamiento.', 'error');
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+
+                if (!json.length) return showAlert(alertId, 'El archivo de rodamiento no tiene contenido.', 'error');
+
+                const rows = json.filter(row => {
+                    const normalized = getNormalizedRow(row);
+                    const cedula = String(
+                        normalized.cedula ||
+                        normalized.cc ||
+                        normalized.documento ||
+                        normalized.identificacion ||
+                        ''
+                    ).trim();
+                    const nombre = String(
+                        normalized.nombre ||
+                        normalized.nombres ||
+                        normalized.nombreempleado ||
+                        normalized.empleado ||
+                        ''
+                    ).trim();
+                    const fecha = String(
+                        normalized.fecha ||
+                        normalized.fecharegistro ||
+                        normalized.fechaingreso ||
+                        ''
+                    ).trim();
+                    const descripcion = String(
+                        normalized.descripcion ||
+                        normalized.tipo ||
+                        normalized.detalle ||
+                        normalized.observacion ||
+                        ''
+                    ).trim();
+                    return cedula && nombre && fecha && descripcion;
+                });
+
+                if (!rows.length) return showAlert(alertId, 'No se encontraron filas válidas. Verifique las columnas fecha, cedula, nombre y descripcion.', 'error');
+
+                const oldDocs = await getDocs(collection(db, 'rodamiento'));
+                const batch = writeBatch(db);
+                oldDocs.forEach(d => batch.delete(d.ref));
+
+                rows.forEach((row) => {
+                    const normalized = getNormalizedRow(row);
+                    const cedula = String(
+                        normalized.cedula ||
+                        normalized.cc ||
+                        normalized.documento ||
+                        normalized.identificacion ||
+                        ''
+                    ).trim();
+                    const nombre = String(
+                        normalized.nombre ||
+                        normalized.nombres ||
+                        normalized.nombreempleado ||
+                        normalized.empleado ||
+                        ''
+                    ).trim();
+                    const fechaRaw = String(
+                        normalized.fecha ||
+                        normalized.fecharegistro ||
+                        normalized.fechaingreso ||
+                        ''
+                    ).trim();
+                    const descripcion = String(
+                        normalized.descripcion ||
+                        normalized.tipo ||
+                        normalized.detalle ||
+                        normalized.observacion ||
+                        ''
+                    ).trim();
+                    const fecha = normalizeDateEs(fechaRaw);
+
+                    if (!cedula || !nombre || !fecha || !descripcion) return;
+
+                    const newRef = doc(collection(db, 'rodamiento'));
+                    batch.set(newRef, {
+                        cedula,
+                        nombre,
+                        fecha,
+                        descripcion,
+                        cargadoEn: new Date().toISOString()
+                    });
+                });
+
+                await batch.commit();
+                showAlert(alertId, `Base de rodamiento cargada correctamente (${rows.length} registros).`, 'success');
+                fileInput.value = '';
+            } catch (err) {
+                showAlert(alertId, 'Error al procesar la base de rodamiento o escribir en Firestore.', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
+    const normalizeDateEs = (value) => {
+        const text = String(value).trim();
+
+        if (/^\d+$/.test(text)) {
+            const numericDate = Number(text);
+            if (Number.isFinite(numericDate)) {
+                const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+                const jsDate = new Date(excelEpoch.getTime() + numericDate * 86400000);
+                return jsDate.toISOString().slice(0, 10);
+            }
+        }
+
+        const match = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+        if (match) {
+            const [, day, month, year] = match;
+            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+
+        return text.slice(0, 10);
+    };
+
+    const getNormalizedRow = row => {
+        const normalized = {};
+        Object.entries(row || {}).forEach(([key, value]) => {
+            const normalizedKey = normalizeText(key).replace(/[^A-Z0-9]/g, '').toLowerCase();
+            normalized[normalizedKey] = value;
+        });
+        return normalized;
+    };
+
+    const extractCedulaFromFileName = (fileName) => {
+        const normalized = fileName.toLowerCase();
+        const patterns = [
+            /(\d{6,12})/g,
+            /cedula[^\d]*(\d{6,12})/i,
+            /(\d{6,12})[^\d]*\.(pdf|PDF)$/i,
+            /[a-z]+[^\d]*(\d{6,12})/i
+        ];
+
+        const matches = patterns
+            .flatMap(pattern => Array.from(normalized.matchAll(pattern)))
+            .map(match => match[1] || match[0])
+            .filter(Boolean)
+            .map(value => value.replace(/\D/g, ''))
+            .filter(value => value.length >= 6 && value.length <= 12);
+
+        return matches[0] || '';
+    };
+
     const procesarPdfs = async () => {
         const fileInput = document.getElementById('pdf-files');
         const periodo = document.getElementById('pdf-periodo').value;
-        const files = [...fileInput.files];
+        const files = [...fileInput.files].filter(file => file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')));
         const alertId = 'admin-alert';
         if (!periodo) return showAlert(alertId, 'Seleccione el mes de los volantes.', 'error');
         if (!files.length) return showAlert(alertId, 'Seleccione uno o varios archivos PDF.', 'error');
@@ -911,31 +1337,24 @@
 
         try {
             let cargados = 0;
+            let rechazados = [];
+
             for (const file of files) {
-                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) continue;
-                const cedulaMatch = file.name.match(/\d[\d.,\s-]{5,}/);
-                if (!cedulaMatch) {
-                    showAlert(alertId, `No se encontró una cédula en el nombre: ${file.name}`, 'error');
+                const cedula = extractCedulaFromFileName(file.name);
+                if (!cedula) {
+                    rechazados.push(`${file.name} (sin cédula detectable)`);
                     continue;
                 }
 
-                const cedula = cedulaMatch[0].replace(/\D/g, '');
-                if (cedula.length < 6 || cedula.length > 12) {
-                    showAlert(alertId, `La cédula del archivo no es válida: ${file.name}`, 'error');
-                    continue;
-                }
                 const storagePath = `${periodo}/${cedula}.pdf`;
                 try {
-                    const { error } = await supabase.storage
+                    const { error: uploadError } = await supabase.storage
                         .from(supabaseBucket)
                         .upload(storagePath, file, { contentType: 'application/pdf', upsert: true });
-                    if (error) throw error;
-                } catch (error) {
-                    throw new Error(`Supabase Storage rechazó ${file.name}: ${error.message || 'verifique el bucket y sus políticas.'}`);
-                }
-                const { data: publicUrlData } = supabase.storage.from(supabaseBucket).getPublicUrl(storagePath);
-                try {
-                    const { error } = await supabase.from('volantes_pdf').upsert({
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicUrlData } = supabase.storage.from(supabaseBucket).getPublicUrl(storagePath);
+                    const { error: dbError } = await supabase.from('volantes_pdf').upsert({
                         cedula,
                         periodo,
                         nombreArchivo: file.name,
@@ -943,15 +1362,20 @@
                         storage_path: storagePath,
                         actualizado_en: new Date().toISOString()
                     }, { onConflict: 'periodo,cedula' });
-                    if (error) throw error;
+                    if (dbError) throw dbError;
+                    cargados += 1;
                 } catch (error) {
-                    throw new Error(`El PDF subió, pero no se pudo registrar en Supabase: ${error.message || 'verifique la tabla y sus políticas.'}`);
+                    rechazados.push(`${file.name} (${error.message || 'error de carga'})`);
                 }
-                cargados += 1;
             }
 
-            if (!cargados) return showAlert(alertId, 'No se cargó ningún PDF. Verifique que el nombre incluya la cédula.', 'error');
-            showAlert(alertId, `${cargados} PDF(s) cargado(s) para ${periodo}.`, 'success');
+            if (!cargados) {
+                const detalle = rechazados.length ? ` Archivos rechazados: ${rechazados.slice(0, 3).join('; ')}` : '';
+                return showAlert(alertId, `No se cargó ningún PDF. Verifique que el nombre incluya la cédula.${detalle}`, 'error');
+            }
+
+            const detalleRechazo = rechazados.length ? ` Se descartaron ${rechazados.length} archivo(s) no válidos.` : '';
+            showAlert(alertId, `${cargados} PDF(s) cargado(s) para ${periodo}.${detalleRechazo}`, 'success');
             fileInput.value = '';
         } catch (error) {
             showAlert(alertId, error.message || 'No se pudo cargar el PDF en Supabase.', 'error');
@@ -961,16 +1385,20 @@
     // --- Listeners de Eventos y Manejo de Sesión ---
     document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
     document.getElementById('btn-tab-anticipo').addEventListener('click', () => switchTab('anticipo'));
+    document.getElementById('btn-tab-rodamiento').addEventListener('click', () => switchTab('rodamiento'));
     document.getElementById('btn-tab-documentos').addEventListener('click', () => switchTab('documentos'));
     document.getElementById('btn-tab-admin').addEventListener('click', () => switchTab('admin'));
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
+    document.getElementById('btn-consultar-rodamiento').addEventListener('click', consultarRodamiento);
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
     document.getElementById('btn-solicitar-anticipo').addEventListener('click', solicitarAnticipo);
     document.getElementById('filter-mes').addEventListener('change', renderTable);
     document.getElementById('sort-monto').addEventListener('change', renderTable);
     document.getElementById('btn-procesar').addEventListener('click', procesarArchivo);
+    document.getElementById('btn-procesar-rodamiento').addEventListener('click', procesarRodamiento);
     document.getElementById('btn-procesar-pdf').addEventListener('click', procesarPdfs);
     document.getElementById('btn-exportar-anticipos').addEventListener('click', exportarAnticipos);
+    document.getElementById('btn-delete-all-anticipos').addEventListener('click', borrarTodosLosAnticipos);
     document.getElementById('btn-delete-all').addEventListener('click', borrarTodosLosRegistros);
 
     document.getElementById('btn-login').addEventListener('click', async () => {
