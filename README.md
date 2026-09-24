@@ -57,3 +57,13 @@ El login visible del panel continúa siendo Firebase Auth. Las políticas `inser
 y `update` de Supabase deben endurecerse antes de un entorno público, idealmente
 con Supabase Auth o una Edge Function que valide la sesión de Firebase, porque
 Supabase no puede evaluar directamente el usuario autenticado en Firebase.
+
+## Información laboral del trabajador
+
+Desde el portal privado, el trabajador autenticado puede consultar:
+
+- Trabajo diario, desde la colección Firestore `trabajoDiario`. Cargue un Excel o CSV con las columnas `fecha, cedula, nombre, labor, cantidad`.
+- Préstamos y cuotas pendientes, desde la colección `prestamos`. Cargue `fecha, cedula, nombre, concepto, monto, cuota, cuotasPagadas, totalCuotas`.
+- Un certificado laboral sencillo generado en el navegador, con nombre, cédula, fecha de ingreso y tipo de contrato. El certificado no incluye sueldo.
+
+Los cargues se realizan desde el panel de administrador y reemplazan los registros anteriores de su respectiva colección.

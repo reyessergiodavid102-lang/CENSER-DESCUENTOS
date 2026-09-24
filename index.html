@@ -11,6 +11,8 @@
         :root {
             --red: #d62828;
             --green: #128448;
+            --green-dark: #075e3f;
+            --mint: #e8f8ef;
             --ink: #17211b;
             --muted: #65736b;
             --line: #dce7df;
@@ -50,6 +52,188 @@
         .header img { width: min(260px, 80%); height: auto; }
         .header h1 { margin: 16px 0 6px; font-size: clamp(1.4rem, 3.5vw, 2rem); font-family: Georgia, serif; }
         .header p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+        .portal-copy, .portal-security, .portal-close, #portal-session, #portal-welcome { display: none; }
+
+        body.portal-open {
+            display: grid;
+            min-height: 100vh;
+            padding: 0;
+            place-items: center;
+            background: #f5f8f4;
+        }
+        body.portal-open::before {
+            position: fixed;
+            top: -180px;
+            right: -140px;
+            width: 430px;
+            height: 430px;
+            content: '';
+            background: #dceee2;
+            border-radius: 50%;
+        }
+        body.portal-open .container {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(390px, .82fr);
+            width: min(1180px, 100%);
+            max-width: none;
+            min-height: min(760px, 100vh);
+            overflow: hidden;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+        body.portal-open .header {
+            display: flex;
+            min-height: 100%;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 46px clamp(32px, 7vw, 88px) 48px;
+            text-align: left;
+            background: transparent;
+            border: 0;
+        }
+        body.portal-open .header img { width: min(270px, 100%); }
+        body.portal-open .header h1, body.portal-open .header > p { display: none; }
+        body.portal-open .header .portal-link { display: none; }
+        body.portal-open .portal-copy { display: block; margin: auto 0; max-width: 540px; }
+        body.portal-open .portal-copy .eyebrow { margin: 0 0 22px; color: #4f9880; font: 700 .72rem Arial, sans-serif; letter-spacing: .22em; text-transform: uppercase; }
+        body.portal-open .portal-copy h1 { display: block; margin: 0; color: #102d2b; font: 800 clamp(3.2rem, 6vw, 5.1rem)/.97 Arial, sans-serif; letter-spacing: -.06em; }
+        body.portal-open .portal-copy h1 span { color: #2d9274; }
+        body.portal-open .portal-copy p { display: block; max-width: 390px; margin: 28px 0 0; color: #83938c; font: 400 1rem/1.55 Arial, sans-serif; }
+        body.portal-open .portal-security { display: flex; align-items: center; gap: 12px; color: #647b72; font: 700 .84rem Arial, sans-serif; }
+        body.portal-open .portal-security::before { width: 14px; height: 14px; content: ''; background: #61c79b; border: 5px solid #d9f0e5; border-radius: 50%; box-shadow: 0 0 0 1px #bfe4d2; }
+        body.portal-open .portal-security small { display: block; margin-top: 4px; color: #9aaba4; font-weight: 400; }
+        body.portal-open .portal-close { display: inline-flex; align-items: center; gap: 8px; padding: 0; color: #53766a; background: transparent; border: 0; font: 700 .82rem Arial, sans-serif; cursor: pointer; }
+        body.portal-open .workspace { display: flex; min-width: 0; align-items: center; padding: 48px clamp(28px, 6vw, 80px) 48px 24px; }
+        body.portal-open .tabs { display: none; }
+        body.portal-open .tab-content { width: 100%; }
+        body.portal-open #tab-admin { display: block; }
+        body.portal-open #admin-login-form, body.portal-open #admin-panel { display: none !important; }
+        body.portal-open #portal-login-form { display: block; }
+        body.portal-open #portal-session { display: none; }
+        body.portal-open #portal-welcome { display: none; }
+        body.portal-open.portal-authenticated #portal-login-form { display: none; }
+        body.portal-open.portal-authenticated.welcome-complete #portal-session { display: block; }
+        body.portal-open.portal-authenticated:not(.welcome-complete) #portal-welcome { display: block; }
+        body.portal-open .login-card { max-width: 500px; margin: 0; padding: clamp(28px, 4vw, 44px); background: #fff; border: 1px solid #e2e9e4; border-radius: 3px; box-shadow: 0 20px 45px rgba(28, 62, 49, .08); }
+        body.portal-open .login-card h2 { color: #102d2b; font: 800 clamp(1.8rem, 3vw, 2.2rem) Arial, sans-serif; }
+        body.portal-open .login-card p { color: #8b9993; }
+        body.portal-open .login-card .btn { min-height: 58px; text-align: left; letter-spacing: .08em; text-transform: uppercase; }
+        body.portal-open .login-card .btn::after { float: right; color: #e6b446; content: '\2192'; font-size: 1.3rem; line-height: .8; }
+        body.portal-open #portal-session { max-width: 500px; margin: 0; padding: clamp(28px, 4vw, 44px); background: #fff; border: 1px solid #e2e9e4; border-radius: 3px; box-shadow: 0 20px 45px rgba(28, 62, 49, .08); }
+        body.portal-open #portal-session h2 { margin: 0 0 10px; color: #102d2b; font: 800 1.8rem Arial, sans-serif; }
+        body.portal-open #portal-session p { color: #7d8e87; line-height: 1.5; }
+        body.portal-open #portal-session .btn { margin-top: 16px; }
+        body.portal-open #portal-welcome { max-width: 500px; margin: 0; padding: clamp(36px, 5vw, 64px) clamp(28px, 4vw, 48px); color: #fff; background: linear-gradient(145deg, #0f3d37, #247b62); border-radius: 3px; box-shadow: 0 20px 45px rgba(28, 62, 49, .16); animation: welcome-in .55s ease-out both; }
+        body.portal-open #portal-welcome .welcome-mark { display: grid; width: 52px; height: 52px; margin-bottom: 26px; place-items: center; color: #0f3d37; background: #bfead5; border-radius: 50%; font-size: 1.5rem; }
+        body.portal-open #portal-welcome h2 { margin: 0 0 10px; font: 800 clamp(2rem, 4vw, 2.8rem) Arial, sans-serif; }
+        body.portal-open #portal-welcome p { margin: 0; color: #d9f1e5; font-size: 1rem; }
+        .employee-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 24px 0; }
+        .employee-info div { padding: 14px; background: #f4f8f5; border: 1px solid #e1ece5; border-radius: 8px; }
+        .employee-info span { display: block; margin-bottom: 6px; color: #82918a; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+        .employee-info strong { color: #163c35; font-size: .95rem; }
+        .employee-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 22px 0 14px; }
+        .employee-actions .btn { min-height: 46px; padding: 10px 8px; font-size: .82rem; }
+        .employee-view { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+        .employee-view.active { display: block; animation: appear .25s ease-out; }
+        .employee-view h3 { margin: 0 0 12px; color: #163c35; font-size: 1.1rem; }
+        .employee-view table { margin-top: 8px; }
+        .loan-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+        .loan-summary div { padding: 12px 8px; text-align: center; background: var(--wash); border: 1px solid var(--line); border-radius: 8px; }
+        .loan-summary span { display: block; color: var(--muted); font-size: .72rem; }
+        .loan-summary strong { display: block; margin-top: 5px; color: var(--green-dark); font-size: 1rem; }
+        .certificate-card { padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+        .certificate-card p { margin: 6px 0; color: var(--muted); }
+        @media (max-width: 600px) { .employee-actions, .loan-summary { grid-template-columns: 1fr; } }
+        @keyframes welcome-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        body.portal-open #admin-panel { width: 100%; max-height: calc(100vh - 96px); overflow: auto; margin: 0; }
+
+        body.portal-open.portal-authenticated { display: block; min-height: 100vh; background: #f5f8f4; }
+        body.portal-open.portal-authenticated .container { display: block; width: 100%; min-height: 100vh; background: transparent; }
+        body.portal-open.portal-authenticated .header { display: none; }
+        body.portal-open.portal-authenticated .workspace { display: block; min-height: 100vh; padding: 0; }
+        body.portal-open.portal-authenticated #portal-session,
+        body.portal-open.portal-authenticated #portal-welcome { width: 100%; max-width: none; min-height: 100vh; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+        body.portal-open.portal-authenticated #portal-session { padding: clamp(32px, 6vw, 72px) clamp(24px, 8vw, 120px); background: linear-gradient(145deg, #ffffff 0%, #f7fbf8 100%); }
+        body.portal-open.portal-authenticated #portal-session > * { max-width: 1180px; margin-right: auto; margin-left: auto; }
+        body.portal-open.portal-authenticated #portal-session h2 { padding-top: 0; font-size: clamp(2rem, 4vw, 3.2rem); }
+        body.portal-open.portal-authenticated #portal-session > p { display: none; }
+        .employee-topbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 28px; border-bottom: 1px solid #e1e8e3; }
+        .employee-brand, .employee-user, .employee-nav { display: flex; align-items: center; }
+        .employee-brand { gap: 18px; color: #183a34; font-size: .9rem; }
+        .employee-brand img { width: 92px; height: auto; }
+        .employee-nav { align-self: stretch; gap: 30px; margin-right: auto; color: #8b9993; font-size: .8rem; }
+        .employee-nav span { display: flex; align-items: center; position: relative; }
+        .employee-nav span.active { color: #267e68; font-weight: 700; }
+        .employee-nav span.active::after { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; content: ''; background: #e6a83c; }
+        .employee-user { gap: 10px; color: #183a34; font-size: .76rem; }
+        .employee-user > span { display: grid; width: 30px; height: 30px; place-items: center; color: #2b806d; background: #dcece3; border-radius: 50%; font-size: .66rem; }
+        .employee-exit { padding: 4px 0 4px 12px; color: #72847c; background: transparent; border: 0; font-size: 1.2rem; cursor: pointer; transform: rotate(180deg); }
+        .employee-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 58px 0 32px; }
+        .employee-heading h2 { margin: 0 0 8px; color: #14352f; font-weight: 800; letter-spacing: -.04em; }
+        .employee-heading h2 span { color: #2d9274; }
+        .employee-heading p { margin: 0; color: #81918a; font-size: .88rem; }
+        .employee-eyebrow { margin-bottom: 18px !important; color: #2d9274 !important; font-size: .65rem !important; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+        .refresh-employee { padding: 12px 16px; color: #314b43; background: #fff; border: 1px solid #dce5df; font-size: .78rem; cursor: pointer; }
+        body.portal-open.portal-authenticated .employee-info { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+        body.portal-open.portal-authenticated .employee-info div { min-width: 0; min-height: 104px; padding: 20px; background: rgba(244, 248, 245, .9); }
+        body.portal-open.portal-authenticated .employee-info span { line-height: 1.2; }
+        body.portal-open.portal-authenticated .employee-info strong { display: block; font-size: 1.1rem; line-height: 1.25; overflow-wrap: anywhere; word-break: break-word; }
+        body.portal-open.portal-authenticated .employee-actions { gap: 14px; }
+        body.portal-open.portal-authenticated .employee-actions { max-width: 980px; margin-right: auto; margin-left: auto; }
+        body.portal-open.portal-authenticated .employee-actions .btn { min-height: 58px; font-size: 1rem; }
+        body.portal-open.portal-authenticated #portal-session > .btn { display: block; max-width: 980px; margin-right: auto; margin-left: auto; }
+        body.portal-open.portal-authenticated #portal-session > .btn-secondary { margin-top: 28px; }
+        body.portal-open.portal-authenticated .employee-view { max-width: 1180px; margin-right: auto; margin-left: auto; }
+        .admin-upload-note { max-width: 760px; margin: -6px 0 14px; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+
+        @media (min-width: 601px) and (max-width: 950px) {
+            body.portal-open.portal-authenticated .employee-info { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .portal-link {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            color: var(--green-dark);
+            background: var(--mint);
+            border: 1px solid #b9e6ca;
+            border-radius: 999px;
+            font: 700 .84rem Arial, sans-serif;
+            text-decoration: none;
+            box-shadow: 0 6px 16px rgba(18, 132, 72, .1);
+            transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+        .portal-link:hover { background: #d8f2e2; box-shadow: 0 8px 20px rgba(18, 132, 72, .16); transform: translateY(-2px); }
+        .portal-link svg { width: 17px; height: 17px; }
+
+        .whatsapp-float {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 10;
+            display: grid;
+            width: 62px;
+            height: 62px;
+            place-items: center;
+            color: #fff;
+            background: #25d366;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 10px 24px rgba(18, 95, 52, .28);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .whatsapp-float:hover { transform: translateY(-4px) scale(1.04); box-shadow: 0 14px 28px rgba(18, 95, 52, .34); }
+        .whatsapp-float svg { width: 31px; height: 31px; fill: currentColor; }
+        .whatsapp-label { position: absolute; right: 72px; white-space: nowrap; padding: 8px 11px; color: var(--green-dark); background: #fff; border: 1px solid #ccebd7; border-radius: 8px; font: 700 .78rem Arial, sans-serif; opacity: 0; pointer-events: none; transform: translateX(6px); transition: .2s ease; }
+        .whatsapp-float:hover .whatsapp-label, .whatsapp-float:focus-visible .whatsapp-label { opacity: 1; transform: translateX(0); }
 
         .workspace { padding: 28px clamp(18px, 4vw, 48px) 40px; }
 
@@ -181,12 +365,84 @@
         .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
         .alert-success { color: #14623b; background: #eef9f1; border: 1px solid #bfdfc8; }
 
+        .employee-bulk-progress {
+            display: none;
+            margin-top: 14px;
+        }
+        .employee-bulk-progress-text {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--green-dark);
+            font-weight: 700;
+            font-size: .88rem;
+        }
+        .employee-bulk-progress-bar {
+            width: 100%;
+            height: 12px;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid #cfe0d4;
+            background: #eaf2ee;
+        }
+        .employee-bulk-progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #24a35d, #0f7b46);
+            transition: width .25s ease;
+        }
+
+        .login-card {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: clamp(22px, 5vw, 34px);
+            background: linear-gradient(145deg, #f0fbf4, #fffaf0);
+            border: 1px solid #ccebd7;
+            border-radius: 18px;
+            box-shadow: 0 14px 30px rgba(18, 132, 72, .08);
+        }
+        .login-card h2 { margin: 0 0 8px; color: var(--green-dark); font-family: Georgia, serif; font-size: 1.55rem; }
+        .login-card p { margin: 0 0 24px; color: var(--muted); font-size: .92rem; }
+        .login-card .btn { background: linear-gradient(135deg, var(--green), var(--green-dark)); }
+        .login-card .btn:hover { background: linear-gradient(135deg, #0d9b54, #075e3f); }
+        .employee-provisioning { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+        .employee-provisioning h3 { margin-top: 0; color: var(--green-dark); }
+        .employee-provisioning .btn { max-width: 320px; }
+        .employee-bulk-upload { margin-top: 22px; padding: 18px; background: var(--wash); border: 1px solid var(--line); border-radius: 10px; }
+        .employee-bulk-upload h4 { margin: 0 0 6px; color: var(--green-dark); }
+        .employee-bulk-upload p { margin: 0 0 12px; color: var(--muted); font-size: .85rem; line-height: 1.5; }
+
         @keyframes appear { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 600px) {
             body { padding: 10px; }
+            .header { padding-top: 78px; }
+            .portal-link { top: 14px; right: 14px; }
+            .whatsapp-float { right: 16px; bottom: 16px; }
             .workspace { padding: 18px 12px; }
             table { display: block; overflow-x: auto; white-space: nowrap; }
+
+            body.portal-open { display: block; }
+            body.portal-open .container { display: block; min-height: 100vh; }
+            body.portal-open .header { min-height: 76vh; padding: 28px 24px 34px; }
+            body.portal-open .header img { width: min(230px, 78%); }
+            body.portal-open .portal-copy { margin: 70px 0 auto; }
+            body.portal-open .portal-copy h1 { font-size: clamp(2.8rem, 15vw, 4.2rem); }
+            body.portal-open .portal-copy p { margin-top: 20px; }
+            body.portal-open .portal-security { margin-top: 44px; }
+            body.portal-open .workspace { display: flex; padding: 28px 24px 44px; }
+            body.portal-open.portal-authenticated .workspace { display: block; padding: 0; }
+            body.portal-open.portal-authenticated #portal-session { padding: 28px 20px 36px; }
+            .employee-topbar { min-height: 58px; gap: 12px; }
+            .employee-brand { gap: 8px; font-size: .72rem; }
+            .employee-brand img { width: 72px; }
+            .employee-nav { display: none; }
+            .employee-user strong { display: none; }
+            .employee-heading { align-items: flex-start; flex-direction: column; padding: 42px 0 26px; }
+            .refresh-employee { align-self: stretch; }
+            body.portal-open.portal-authenticated .employee-info { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+            body.portal-open.portal-authenticated .employee-info div { min-height: 86px; padding: 14px; }
+            body.portal-open.portal-authenticated .employee-info strong { font-size: .98rem; }
         }
     </style>
 </head>
@@ -194,9 +450,24 @@
 
 <div class="container">
     <div class="header">
+        <a class="portal-link" href="#tab-admin" id="btn-portal-empleados" aria-label="Ingresar al portal de empleados">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v5c0 5.2 3.4 10 8 12 4.6-2 8-6.8 8-12V5l-8-3Zm0 4.1 5 1.9v2c0 3.8-2.2 7.4-5 9-2.8-1.6-5-5.2-5-9V8.1l5-2Zm-1 3.4v3.1H8.2v2H11v2.7h2v-2.7h2.8v-2H13V9.5h-2Z"/></svg>
+            Portal de empleados
+        </a>
         <img src="logo.svg" alt="Censer JR S.A.S">
         <h1>Área de Gestión Administrativa</h1>
         <p>Acceso seguro e instantáneo a tu información laboral</p>
+        <div class="portal-copy">
+            <p class="eyebrow">Portal privado</p>
+            <h1>Tu<br>información,<br><span>en un solo<br>lugar.</span></h1>
+            <p>Accede para consultar tus datos, revisar tu progreso y mantener tu información al día.</p>
+        </div>
+        <div class="portal-security">
+            <div>Acceso protegido<small>Sesión privada y segura</small></div>
+        </div>
+        <button class="portal-close" id="btn-cerrar-portal" type="button" aria-label="Volver a las consultas públicas">
+            <span aria-hidden="true">&#8592;</span> Volver a consultas
+        </button>
     </div>
 
     <div class="workspace">
@@ -326,20 +597,137 @@
 
         <!-- Módulo Administrador -->
         <div id="tab-admin" class="tab-content">
-            <div id="admin-login-form">
+            <div id="portal-login-form" class="login-card">
+                <h2>Iniciar sesión</h2>
+                <p>Ingresa tus credenciales de trabajador para continuar.</p>
                 <div class="form-group">
-                    <label for="admin-email">Correo Electrónico:</label>
+                    <label for="employee-cedula">Número de cédula</label>
+                    <input type="text" id="employee-cedula" placeholder="Ej: 1006874916" inputmode="numeric" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="employee-pass">Contraseña</label>
+                    <input type="password" id="employee-pass" placeholder="Escribe tu contraseña" autocomplete="current-password">
+                </div>
+                <button class="btn" id="btn-employee-login">Entrar</button>
+                <div id="employee-login-alert" class="alert"></div>
+            </div>
+
+            <div id="portal-session">
+                <div class="employee-topbar">
+                    <div class="employee-brand"><img src="logo.svg" alt="Censer JR S.A.S"><strong>Portal privado</strong></div>
+                    <nav class="employee-nav" aria-label="Navegación del portal"><span class="active">Resumen</span><span>Mi información</span></nav>
+                    <div class="employee-user"><span id="employee-user-initials">-</span><strong id="employee-user-name">Trabajador</strong><button class="employee-exit" type="button" id="btn-employee-logout-top" aria-label="Cerrar sesión">&#8594;</button></div>
+                </div>
+                <div class="employee-heading">
+                    <div><p class="employee-eyebrow">Mi espacio / Resumen</p><h2>Hola, <span id="employee-heading-name">trabajador</span>.</h2><p>Consulta tu información laboral y tus registros de trabajo.</p></div>
+                    <button class="refresh-employee" type="button" id="btn-refresh-employee">&#8635; Actualizar datos</button>
+                </div>
+                <div class="employee-info">
+                    <div><span>Nombre</span><strong id="employee-info-name">-</strong></div>
+                    <div><span>Cédula</span><strong id="employee-info-cedula">-</strong></div>
+                    <div><span>Fecha de ingreso</span><strong id="employee-info-date">-</strong></div>
+                    <div><span>Tipo de contrato</span><strong id="employee-info-contract">-</strong></div>
+                </div>
+                <button class="btn" id="btn-consultar-mi-informacion">Consultar mi información</button>
+                    <div class="employee-actions" aria-label="Opciones de información laboral">
+                        <button class="btn" type="button" data-employee-view="trabajo">Trabajo diario</button>
+                        <button class="btn" type="button" data-employee-view="prestamos">Mis préstamos</button>
+                        <button class="btn" type="button" data-employee-view="certificado">Certificado</button>
+                    </div>
+                    <div id="employee-view-trabajo" class="employee-view">
+                        <h3>Mi trabajo día a día</h3>
+                        <div id="trabajo-diario-alert" class="alert"></div>
+                        <div class="document-table"><table><thead><tr><th>Fecha</th><th>Labor</th><th>Cantidad</th></tr></thead><tbody id="trabajo-diario-body"></tbody></table></div>
+                    </div>
+                    <div id="employee-view-prestamos" class="employee-view">
+                        <h3>Préstamos de la empresa</h3>
+                        <div id="prestamos-alert" class="alert"></div>
+                        <div class="loan-summary"><div><span>Total prestado</span><strong id="prestamos-total">$0</strong></div><div><span>Total pagado</span><strong id="prestamos-pagado">$0</strong></div><div><span>Cuotas pendientes</span><strong id="prestamos-cuotas">0</strong></div></div>
+                        <div class="document-table"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Cuota</th><th>Restantes</th><th>Saldo</th></tr></thead><tbody id="prestamos-body"></tbody></table></div>
+                    </div>
+                    <div id="employee-view-certificado" class="employee-view">
+                        <h3>Certificado laboral sencillo</h3>
+                        <p>Genera una constancia con tus datos básicos, sin incluir sueldo.</p>
+                        <div class="certificate-card"><p><strong id="certificate-name">-</strong></p><p>Cédula: <span id="certificate-cedula">-</span></p><p>Fecha de ingreso: <span id="certificate-date">-</span></p><p>Tipo de contrato: <span id="certificate-contract">-</span></p></div>
+                        <button class="btn" type="button" id="btn-generar-certificado">Generar certificado</button>
+                        <div id="certificado-alert" class="alert"></div>
+                    </div>
+                <button class="btn btn-secondary" id="btn-employee-logout">Cerrar sesión</button>
+            </div>
+
+            <div id="portal-welcome">
+                <div class="welcome-mark" aria-hidden="true">✓</div>
+                <h2>¡Bienvenido, <span id="portal-welcome-name">trabajador</span>!</h2>
+                <p>Estamos preparando tu información personal.</p>
+            </div>
+
+            <div id="admin-login-form" class="login-card">
+                <h2>Portal de empleados</h2>
+                <p>Ingresa con tu usuario y contraseña para acceder al área privada.</p>
+                <div class="form-group">
+                    <label for="admin-email">Usuario o correo electrónico</label>
                     <input type="email" id="admin-email" value="censerjrsas@hotmail.com">
                 </div>
                 <div class="form-group">
-                    <label for="admin-pass">Contraseña:</label>
-                    <input type="password" id="admin-pass" placeholder="••••••••">
+                    <label for="admin-pass">Contraseña</label>
+                    <input type="password" id="admin-pass" placeholder="Escribe tu contraseña">
                 </div>
-                <button class="btn" id="btn-login">Ingresar al Panel</button>
+                <button class="btn" id="btn-login">Ingresar al portal</button>
                 <div id="login-alert" class="alert"></div>
             </div>
 
             <div id="admin-panel" class="admin-box" style="display: none;">
+                <div class="employee-provisioning">
+                    <h3>Crear acceso de trabajador</h3>
+                    <p style="color: var(--muted); font-size: 0.9rem;">Registre las credenciales que usará el trabajador para ingresar al portal.</p>
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="new-employee-cedula">Número de cédula</label>
+                            <input type="text" id="new-employee-cedula" placeholder="Ej: 1006874916" inputmode="numeric">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-employee-name">Nombre completo</label>
+                            <input type="text" id="new-employee-name" placeholder="Ej: Carlos Pérez">
+                        </div>
+                    </div>
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="new-employee-date">Fecha de ingreso</label>
+                            <input type="date" id="new-employee-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-employee-contract">Tipo de contrato</label>
+                            <select id="new-employee-contract">
+                                <option value="">Seleccione una opción</option>
+                                <option value="Indefinido">Indefinido</option>
+                                <option value="Fijo">Término fijo</option>
+                                <option value="Prestación de servicios">Prestación de servicios</option>
+                                <option value="Obra o labor">Obra o labor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-employee-pass">Contraseña temporal</label>
+                        <input type="password" id="new-employee-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                    </div>
+                    <button class="btn" id="btn-create-employee">Crear acceso</button>
+                    <div id="employee-create-alert" class="alert"></div>
+                    <div class="employee-bulk-upload">
+                        <h4>Carga masiva de trabajadores</h4>
+                        <p>Use un archivo Excel o CSV con las columnas: <strong>cedula, nombre, password, tipoContrato, fechaIngreso</strong>.</p>
+                        <div class="form-group">
+                            <input type="file" id="employee-bulk-file" accept=".xlsx, .xls, .csv">
+                        </div>
+                        <button class="btn" id="btn-upload-employees">Cargar trabajadores</button>
+                        <div id="employee-bulk-progress" class="employee-bulk-progress" aria-live="polite">
+                            <span id="employee-bulk-progress-text" class="employee-bulk-progress-text">0%</span>
+                            <div class="employee-bulk-progress-bar">
+                                <div id="employee-bulk-progress-fill" class="employee-bulk-progress-fill"></div>
+                            </div>
+                        </div>
+                        <div id="employee-bulk-alert" class="alert"></div>
+                    </div>
+                </div>
                 <h3>Cargar Base de Datos</h3>
                 <p style="color: var(--muted); font-size: 0.9rem;">Suba un archivo (.xlsx o .csv) con las columnas: <strong>cedula, nombre, mes, concepto, monto</strong></p>
                 
@@ -355,6 +743,18 @@
                     <input type="file" id="rodamiento-file" accept=".xlsx, .xls, .csv">
                 </div>
                 <button class="btn" id="btn-procesar-rodamiento">Cargar Datos de Rodamiento</button>
+
+                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
+                <h3>Cargar trabajo diario</h3>
+                <p class="admin-upload-note">Excel o CSV con las columnas: <strong>fecha, cedula, nombre, labor, cantidad</strong>. Cada fila queda relacionada con el trabajador mediante su cédula.</p>
+                <div class="form-group"><input type="file" id="trabajo-diario-file" accept=".xlsx, .xls, .csv"></div>
+                <button class="btn" id="btn-procesar-trabajo">Cargar Trabajo Diario</button>
+
+                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
+                <h3>Cargar préstamos</h3>
+                <p class="admin-upload-note">Excel o CSV con las columnas: <strong>fecha, cedula, nombre, concepto, monto, cuota, cuotasPagadas, totalCuotas</strong>. Los préstamos también se muestran únicamente al trabajador de esa cédula.</p>
+                <div class="form-group"><input type="file" id="prestamos-file" accept=".xlsx, .xls, .csv"></div>
+                <button class="btn" id="btn-procesar-prestamos">Cargar Préstamos</button>
 
                 <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
                 <h3>Cargar volantes en PDF</h3>
@@ -414,6 +814,11 @@
     </div>
 </div>
 
+<a class="whatsapp-float" href="https://wa.me/573108646045?text=Hola%2C%20necesito%20ayuda%20con%20el%20portal%20de%20empleados" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp al 310 864 6045">
+    <span class="whatsapp-label">Escríbenos por WhatsApp</span>
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.2A12.7 12.7 0 0 0 5.1 22.4L3.5 28.5l6.3-1.6A12.8 12.8 0 1 0 16 3.2Zm0 23.3a10.4 10.4 0 0 1-5.3-1.5l-.4-.2-3.7.9 1-3.6-.3-.4A10.4 10.4 0 1 1 16 26.5Zm5.7-7.7c-.3-.2-1.8-.9-2.1-1s-.5-.2-.7.2-.8 1-.9 1.2-.3.3-.6.1a8.6 8.6 0 0 1-2.5-1.5 9.4 9.4 0 0 1-1.7-2.1c-.2-.4 0-.5.2-.7l.5-.6.2-.4c.1-.2 0-.4 0-.6l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.2-1.2 2.9 1.2 3.3 1.4 3.5a12.2 12.2 0 0 0 4.7 4.2c.7.3 1.2.5 1.6.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.1-1.4-.1-.2-.3-.3-.6-.4Z"/></svg>
+</a>
+
 <script>
     window.__SUPABASE_CONFIG__ = {
         url: 'https://raduchpwfnupjgeylial.supabase.co',
@@ -423,8 +828,8 @@
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, where, writeBatch, doc, setDoc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getFirestore, collection, getDocs, getDoc, query, where, writeBatch, doc, setDoc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     const firebaseConfig = {
@@ -438,6 +843,8 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const employeeProvisioningApp = initializeApp(firebaseConfig, 'employeeProvisioning');
+    const employeeProvisioningAuth = getAuth(employeeProvisioningApp);
     const db = getFirestore(app);
     const supabaseConfig = window.__SUPABASE_CONFIG__ || {
         url: '',
@@ -451,6 +858,7 @@
     let rawData = [];
     let nominaData = [];
     let pdfData = [];
+    let welcomeTimer;
 
     const switchTab = (activeTab) => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -479,6 +887,18 @@
         el.className = `alert alert-${type}`;
         el.textContent = message;
         el.style.display = 'block';
+    };
+
+    const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+    const setBulkProgress = (value, label) => {
+        const progress = Math.max(0, Math.min(100, Number(value) || 0));
+        const root = document.getElementById('employee-bulk-progress');
+        const fill = document.getElementById('employee-bulk-progress-fill');
+        const text = document.getElementById('employee-bulk-progress-text');
+        fill.style.width = `${progress}%`;
+        text.textContent = label ? `${label} (${progress}%)` : `${progress}%`;
+        root.style.display = 'block';
     };
 
     const normalizeText = value => String(value || '')
@@ -731,11 +1151,38 @@
         return holidaySet;
     };
 
+    const normalizeRodamientoRecord = item => {
+        const rawCedula = item?.cedula ?? item?.cc ?? item?.CC ?? item?.documento ?? item?.identificacion ?? '';
+        const rawFecha = item?.fecha ?? item?.Fecha ?? item?.FECHA ?? item?.fechaRegistro ?? item?.fecharegistro ?? '';
+        const rawDescripcion = item?.descripcion ?? item?.DESCRIPCION ?? item?.detalle ?? item?.observacion ?? item?.tipo ?? '';
+        const rawNombre = item?.nombre ?? item?.NOMBRE ?? item?.empleado ?? item?.nombreEmpleado ?? '';
+
+        return {
+            ...item,
+            cedula: normalizeCedula(rawCedula),
+            fecha: normalizeDateEs(rawFecha),
+            descripcion: String(rawDescripcion ?? '').trim(),
+            nombre: String(rawNombre ?? '').trim()
+        };
+    };
+
     const getRodamientoRecords = async (cedula) => {
-        const snapshot = await getDocs(collection(db, 'rodamiento'));
-        return snapshot.docs
-            .map(docSnap => docSnap.data())
-            .filter(item => normalizeCedula(item.cedula) === cedula);
+        const normalizedCedula = normalizeCedula(cedula);
+        const queryVariants = [
+            getDocs(query(collection(db, 'rodamiento'), where('cedula', '==', normalizedCedula))).catch(() => ({ docs: [] })),
+            getDocs(query(collection(db, 'rodamiento'), where('cedula', '==', Number(normalizedCedula)))).catch(() => ({ docs: [] })),
+            getDocs(collection(db, 'rodamiento')).catch(() => ({ docs: [] }))
+        ];
+
+        const snapshots = await Promise.all(queryVariants);
+        const unique = new Map();
+        snapshots.forEach(snapshot => snapshot.docs.forEach(docSnap => {
+            const data = normalizeRodamientoRecord(docSnap.data());
+            if (!data.cedula && !data.nombre && !data.fecha && !data.descripcion) return;
+            unique.set(docSnap.id, data);
+        }));
+
+        return [...unique.values()].filter(item => normalizeCedula(item.cedula) === normalizedCedula);
     };
 
     const consultarRodamiento = async () => {
@@ -758,18 +1205,17 @@
             const diasAsistencia = new Set();
 
             registros.forEach(item => {
-                const rawFecha = item.fecha ? String(item.fecha).trim() : '';
-                const descripcion = String(item.descripcion || item.DESCRIPCION || '').trim().toLowerCase();
+                const rawFecha = item.fecha || '';
+                const descripcion = String(item.descripcion || '').trim().toLowerCase();
 
                 if (!rawFecha) return;
-                const fecha = normalizeDateEs(rawFecha);
-                const fechaMes = fecha.slice(0, 7);
+                const fechaMes = rawFecha.slice(0, 7);
                 if (fechaMes !== periodo) return;
 
                 if (descripcion.includes('pago de rodamiento') || descripcion.includes('rodamiento')) {
-                    diasPagoRodamiento.add(fecha);
+                    diasPagoRodamiento.add(rawFecha);
                 } else if (descripcion.includes('asistencia')) {
-                    diasAsistencia.add(fecha);
+                    diasAsistencia.add(rawFecha);
                 }
             });
 
@@ -803,7 +1249,7 @@
                 `);
             }
 
-            const nombre = registros[0]?.nombre || 'Empleado';
+            const nombre = registros.find(item => item.nombre)?.nombre || 'Empleado';
             document.getElementById('nombre-rodamiento').textContent = `Empleado: ${nombre} | Cédula: ${cedula}`;
             document.getElementById('rodamiento-total').textContent = totalPositivo;
             grid.innerHTML = cells.join('');
@@ -879,6 +1325,83 @@
             const errorCode = err?.code ? ` (${err.code})` : '';
             showAlert(alertId, `No se pudo consultar Firestore${errorCode}. Publique firestore.rules y verifique la conexión.`, 'error');
         }
+    };
+
+    const getEmployeeCollectionRecords = async (collectionName, cedula) => {
+        const normalizedCedula = normalizeCedula(cedula);
+        const queries = [
+            getDocs(query(collection(db, collectionName), where('cedula', '==', normalizedCedula))).catch(() => ({ docs: [] })),
+            getDocs(query(collection(db, collectionName), where('cedula', '==', Number(normalizedCedula)))).catch(() => ({ docs: [] }))
+        ];
+        const snapshots = await Promise.all(queries);
+        const unique = new Map();
+        snapshots.forEach(snapshot => snapshot.docs.forEach(snapshotDoc => unique.set(snapshotDoc.id, snapshotDoc.data())));
+        return [...unique.values()].filter(item => normalizeCedula(item.cedula) === normalizedCedula);
+    };
+
+    const showEmployeeView = async viewName => {
+        document.querySelectorAll('.employee-view').forEach(view => view.classList.remove('active'));
+        const view = document.getElementById(`employee-view-${viewName}`);
+        view.classList.add('active');
+        const cedula = document.body.dataset.employeeCedula || '';
+        if (viewName === 'trabajo') await loadTrabajoDiario(cedula);
+        if (viewName === 'prestamos') await loadPrestamos(cedula);
+    };
+
+    const loadTrabajoDiario = async cedula => {
+        const alertId = 'trabajo-diario-alert';
+        document.getElementById(alertId).style.display = 'none';
+        try {
+            const records = await getEmployeeCollectionRecords('trabajoDiario', cedula);
+            const body = document.getElementById('trabajo-diario-body');
+            body.innerHTML = records.sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || ''))).map(item => `<tr><td>${escapeHtml(item.fecha || '-')}</td><td>${escapeHtml(item.labor || '-')}</td><td>${escapeHtml(item.cantidad ?? '-')}</td></tr>`).join('');
+            if (!records.length) showAlert(alertId, 'Aún no hay registros de trabajo diario para tu cédula.', 'error');
+        } catch (error) {
+            showAlert(alertId, 'No se pudo consultar el trabajo diario.', 'error');
+        }
+    };
+
+    const loadPrestamos = async cedula => {
+        const alertId = 'prestamos-alert';
+        document.getElementById(alertId).style.display = 'none';
+        try {
+            const records = await getEmployeeCollectionRecords('prestamos', cedula);
+            const totals = records.reduce((summary, item) => {
+                const monto = Number(item.monto || 0);
+                const cuota = Number(item.cuota || 0);
+                const totalCuotas = Number(item.totalCuotas || item.cuotas || 0);
+                const cuotasPagadas = Number(item.cuotasPagadas || item.pagadas || 0);
+                summary.monto += monto;
+                summary.pagado += Math.min(cuotasPagadas, totalCuotas) * cuota;
+                summary.pendientes += Math.max(totalCuotas - cuotasPagadas, 0);
+                return summary;
+            }, { monto: 0, pagado: 0, pendientes: 0 });
+            document.getElementById('prestamos-total').textContent = `$${totals.monto.toLocaleString('es-CO')}`;
+            document.getElementById('prestamos-pagado').textContent = `$${totals.pagado.toLocaleString('es-CO')}`;
+            document.getElementById('prestamos-cuotas').textContent = totals.pendientes;
+            document.getElementById('prestamos-body').innerHTML = records.map(item => {
+                const totalCuotas = Number(item.totalCuotas || item.cuotas || 0);
+                const pagadas = Number(item.cuotasPagadas || item.pagadas || 0);
+                const cuota = Number(item.cuota || 0);
+                const saldo = Math.max(totalCuotas - pagadas, 0) * cuota;
+                return `<tr><td>${escapeHtml(item.fecha || '-')}</td><td>${escapeHtml(item.concepto || 'Préstamo')}</td><td>$${cuota.toLocaleString('es-CO')}</td><td>${Math.max(totalCuotas - pagadas, 0)}</td><td>$${saldo.toLocaleString('es-CO')}</td></tr>`;
+            }).join('');
+            if (!records.length) showAlert(alertId, 'Aún no hay préstamos registrados para tu cédula.', 'error');
+        } catch (error) {
+            showAlert(alertId, 'No se pudieron consultar tus préstamos.', 'error');
+        }
+    };
+
+    const generarCertificado = () => {
+        const nombre = document.getElementById('certificate-name').textContent;
+        const cedula = document.getElementById('certificate-cedula').textContent;
+        const fecha = document.getElementById('certificate-date').textContent;
+        const contrato = document.getElementById('certificate-contract').textContent;
+        const fechaActual = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+        const ventana = window.open('', '_blank', 'width=850,height=700');
+        if (!ventana) return showAlert('certificado-alert', 'Permite las ventanas emergentes para generar el certificado.', 'error');
+        ventana.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Certificado laboral</title><style>body{font-family:Arial,sans-serif;max-width:760px;margin:70px auto;color:#17211b;line-height:1.6}header{text-align:center;border-bottom:2px solid #128448;padding-bottom:20px}h1{font-size:22px}main{margin-top:60px;text-align:justify}.firma{margin-top:100px;text-align:center}@media print{body{margin:40px}}</style></head><body><header><h1>CENSER JHON RUIZ S.A.S.</h1><p>NIT. 900 455 498-1</p></header><main><p>Barranca de Upía, ${fechaActual}</p><h2 style="text-align:center;margin:55px 0 35px">A QUIEN INTERESE</h2><p>Por medio de la presente certificamos que <strong>${escapeHtml(nombre)}</strong>, identificado(a) con cédula No. <strong>${escapeHtml(cedula)}</strong>, se encuentra vinculado(a) a nuestra empresa desde el <strong>${escapeHtml(fecha)}</strong>, bajo un contrato <strong>${escapeHtml(contrato)}</strong>.</p><p>La presente certificación se expide a solicitud del interesado, sin incluir información salarial.</p><div class="firma"><p>Cordialmente,</p><br><strong>JHON FREDY RUIZ</strong><br>Gerente</div></main><script>window.onload=()=>window.print()<\/script></body></html>`);
+        ventana.document.close();
     };
 
     const solicitarAnticipo = async () => {
@@ -1213,8 +1736,10 @@
                 if (!rows.length) return showAlert(alertId, 'No se encontraron filas válidas. Verifique las columnas fecha, cedula, nombre y descripcion.', 'error');
 
                 const oldDocs = await getDocs(collection(db, 'rodamiento'));
-                const batch = writeBatch(db);
-                oldDocs.forEach(d => batch.delete(d.ref));
+                const operations = oldDocs.docs.map(snapshotDoc => ({
+                    type: 'delete',
+                    reference: snapshotDoc.ref
+                }));
 
                 rows.forEach((row) => {
                     const normalized = getNormalizedRow(row);
@@ -1249,17 +1774,28 @@
 
                     if (!cedula || !nombre || !fecha || !descripcion) return;
 
-                    const newRef = doc(collection(db, 'rodamiento'));
-                    batch.set(newRef, {
-                        cedula,
-                        nombre,
-                        fecha,
-                        descripcion,
-                        cargadoEn: new Date().toISOString()
+                    operations.push({
+                        type: 'set',
+                        reference: doc(collection(db, 'rodamiento')),
+                        data: {
+                            cedula,
+                            nombre,
+                            fecha,
+                            descripcion,
+                            cargadoEn: new Date().toISOString()
+                        }
                     });
                 });
 
-                await batch.commit();
+                for (let start = 0; start < operations.length; start += 450) {
+                    const batch = writeBatch(db);
+                    operations.slice(start, start + 450).forEach(operation => {
+                        if (operation.type === 'delete') batch.delete(operation.reference);
+                        else batch.set(operation.reference, operation.data);
+                    });
+                    await batch.commit();
+                }
+
                 showAlert(alertId, `Base de rodamiento cargada correctamente (${rows.length} registros).`, 'success');
                 fileInput.value = '';
             } catch (err) {
@@ -1267,6 +1803,41 @@
             }
         };
         reader.readAsArrayBuffer(file);
+    };
+
+    const procesarBaseEmpleado = async (fileInputId, collectionName, tipo) => {
+        const fileInput = document.getElementById(fileInputId);
+        const file = fileInput.files[0];
+        const alertId = 'admin-alert';
+        if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador.', 'error');
+        if (!file) return showAlert(alertId, 'Seleccione un archivo Excel o CSV.', 'error');
+        try {
+            const workbook = XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array', cellDates: true });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+            const records = rows.map(row => {
+                const normalized = getNormalizedRow(row);
+                const base = {
+                    cedula: normalizeCedula(normalized.cedula || normalized.cc || normalized.documento),
+                    nombre: String(normalized.nombre || normalized.nombres || normalized.empleado || '').trim(),
+                    fecha: normalizeDateEs(normalized.fecha || normalized.fecharegistro || '')
+                };
+                if (tipo === 'trabajo') return { ...base, labor: String(normalized.labor || normalized.descripcion || normalized.trabajo || '').trim(), cantidad: normalized.cantidad ?? '' };
+                return { ...base, concepto: String(normalized.concepto || normalized.descripcion || normalized.prestamo || 'Préstamo').trim(), monto: Number(normalized.monto || 0), cuota: Number(normalized.cuota || normalized.valorcuota || 0), cuotasPagadas: Number(normalized.cuotaspagadas || normalized.pagadas || 0), totalCuotas: Number(normalized.totalcuotas || normalized.cuotas || 0) };
+            }).filter(record => record.cedula.length >= 6 && record.fecha && (tipo === 'trabajo' ? record.labor : record.monto > 0 && record.cuota > 0));
+            if (!records.length) return showAlert(alertId, 'No se encontraron filas válidas. Revise las columnas indicadas.', 'error');
+            const oldDocs = await getDocs(collection(db, collectionName));
+            const operations = oldDocs.docs.map(snapshotDoc => ({ type: 'delete', reference: snapshotDoc.ref }));
+            records.forEach(record => operations.push({ type: 'set', reference: doc(collection(db, collectionName)), data: { ...record, cargadoEn: new Date().toISOString() } }));
+            for (let start = 0; start < operations.length; start += 450) {
+                const batch = writeBatch(db);
+                operations.slice(start, start + 450).forEach(operation => operation.type === 'delete' ? batch.delete(operation.reference) : batch.set(operation.reference, operation.data));
+                await batch.commit();
+            }
+            showAlert(alertId, `Base cargada correctamente (${records.length} registros).`, 'success');
+            fileInput.value = '';
+        } catch (error) {
+            showAlert(alertId, 'No se pudo procesar el archivo. Verifique sus columnas y la conexión con Firestore.', 'error');
+        }
     };
 
     const normalizeDateEs = (value) => {
@@ -1293,11 +1864,25 @@
 
         const match = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
         if (match) {
-            const [, day, month, year] = match;
+            const [, first, second, year] = match;
+            const firstNumber = Number(first);
+            const secondNumber = Number(second);
+            const day = firstNumber <= 31 ? firstNumber : secondNumber;
+            const month = firstNumber <= 31 ? secondNumber : firstNumber;
             return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         }
 
         return text.slice(0, 10);
+    };
+
+    const normalizeContratoValue = (value) => {
+        const text = String(value || '').trim().toLowerCase();
+        if (!text) return '';
+        if (['indefinido', 'indefinida'].includes(text)) return 'Indefinido';
+        if (['fijo', 'termino fijo', 'término fijo', 'termino fijo ', 'término fijo '].includes(text)) return 'Fijo';
+        if (['prestación de servicios', 'prestacion de servicios', 'prestación', 'prestacion'].includes(text)) return 'Prestación de servicios';
+        if (['obra o labor', 'obra y labor', 'obra o labor ', 'obra y labor '].includes(text)) return 'Obra o labor';
+        return text.charAt(0).toUpperCase() + text.slice(1);
     };
 
     const getNormalizedRow = row => {
@@ -1307,6 +1892,16 @@
             normalized[normalizedKey] = value;
         });
         return normalized;
+    };
+
+    const getBulkEmployeeValue = (row, aliases) => {
+        const normalized = getNormalizedRow(row);
+        for (const alias of aliases) {
+            if (normalized[alias] !== undefined && normalized[alias] !== null && normalized[alias] !== '') {
+                return normalized[alias];
+            }
+        }
+        return '';
     };
 
     const extractCedulaFromFileName = (fileName) => {
@@ -1385,16 +1980,73 @@
         }
     };
 
+    const getEmployeeCreationErrorMessage = (error) => {
+        const code = error?.code || '';
+        if (code === 'auth/email-already-in-use') return 'Ya existe un acceso registrado para esa cédula.';
+        if (code === 'auth/operation-not-allowed') return 'Firebase no tiene habilitado el acceso por email/contraseña. Actívalo en Authentication > Sign-in method.';
+        if (code === 'auth/admin-restricted-operation') return 'La operación está restringida por configuración de Firebase. Revisa la autenticación y las reglas.';
+        if (code === 'permission-denied') return 'Firestore bloqueó la escritura en la colección empleados. Publica las reglas en Firebase.';
+        return error?.message || 'No se pudo crear el acceso del trabajador.';
+    };
+
+    const createEmployeeAccount = async ({ cedula, nombre, password, fechaIngreso, tipoContrato }) => {
+        const employeeEmail = `${cedula}@empleados.censer.local`;
+        try {
+            const credential = await createUserWithEmailAndPassword(employeeProvisioningAuth, employeeEmail, password);
+            await updateProfile(credential.user, { displayName: nombre });
+            await setDoc(doc(db, 'empleados', cedula), {
+                cedula,
+                nombre,
+                fechaIngreso,
+                tipoContrato,
+                actualizadoEn: new Date().toISOString()
+            });
+        } finally {
+            if (employeeProvisioningAuth.currentUser) await signOut(employeeProvisioningAuth);
+        }
+    };
+
+    const createEmployeeAccountWithRetry = async ({ cedula, nombre, password, fechaIngreso, tipoContrato }, retries = 3) => {
+        try {
+            await createEmployeeAccount({ cedula, nombre, password, fechaIngreso, tipoContrato });
+        } catch (error) {
+            if (error?.code === 'auth/too-many-requests' && retries > 0) {
+                await wait(2000 + ((3 - retries) * 2000));
+                return createEmployeeAccountWithRetry({ cedula, nombre, password, fechaIngreso, tipoContrato }, retries - 1);
+            }
+            throw error;
+        }
+    };
+
     // --- Listeners de Eventos y Manejo de Sesión ---
     document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
     document.getElementById('btn-tab-anticipo').addEventListener('click', () => switchTab('anticipo'));
     document.getElementById('btn-tab-rodamiento').addEventListener('click', () => switchTab('rodamiento'));
     document.getElementById('btn-tab-documentos').addEventListener('click', () => switchTab('documentos'));
+    const openPortal = () => {
+        document.body.classList.add('portal-open');
+        switchTab('admin');
+    };
+
+    const closePortal = () => {
+        document.body.classList.remove('portal-open');
+        switchTab('empleado');
+    };
+
     document.getElementById('btn-tab-admin').addEventListener('click', () => switchTab('admin'));
+    document.getElementById('btn-portal-empleados').addEventListener('click', event => {
+        event.preventDefault();
+        openPortal();
+    });
+    document.getElementById('btn-cerrar-portal').addEventListener('click', closePortal);
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
     document.getElementById('btn-consultar-rodamiento').addEventListener('click', consultarRodamiento);
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
     document.getElementById('btn-solicitar-anticipo').addEventListener('click', solicitarAnticipo);
+    document.querySelectorAll('[data-employee-view]').forEach(button => button.addEventListener('click', () => showEmployeeView(button.dataset.employeeView)));
+    document.getElementById('btn-generar-certificado').addEventListener('click', generarCertificado);
+    document.getElementById('btn-procesar-trabajo').addEventListener('click', () => procesarBaseEmpleado('trabajo-diario-file', 'trabajoDiario', 'trabajo'));
+    document.getElementById('btn-procesar-prestamos').addEventListener('click', () => procesarBaseEmpleado('prestamos-file', 'prestamos', 'prestamo'));
     document.getElementById('filter-mes').addEventListener('change', renderTable);
     document.getElementById('sort-monto').addEventListener('change', renderTable);
     document.getElementById('btn-procesar').addEventListener('click', procesarArchivo);
@@ -1403,6 +2055,104 @@
     document.getElementById('btn-exportar-anticipos').addEventListener('click', exportarAnticipos);
     document.getElementById('btn-delete-all-anticipos').addEventListener('click', borrarTodosLosAnticipos);
     document.getElementById('btn-delete-all').addEventListener('click', borrarTodosLosRegistros);
+    document.getElementById('btn-create-employee').addEventListener('click', async () => {
+        const cedula = extractDigits(document.getElementById('new-employee-cedula').value);
+        const nombre = document.getElementById('new-employee-name').value.trim();
+        const password = document.getElementById('new-employee-pass').value;
+        const fechaIngreso = document.getElementById('new-employee-date').value;
+        const tipoContrato = document.getElementById('new-employee-contract').value;
+        const alertId = 'employee-create-alert';
+
+        if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador.', 'error');
+        if (cedula.length < 6 || cedula.length > 12) return showAlert(alertId, 'Ingrese una cédula válida.', 'error');
+        if (!nombre) return showAlert(alertId, 'Ingrese el nombre completo del trabajador.', 'error');
+        if (!fechaIngreso) return showAlert(alertId, 'Ingrese la fecha de ingreso.', 'error');
+        if (!tipoContrato) return showAlert(alertId, 'Seleccione el tipo de contrato.', 'error');
+        if (password.length < 6) return showAlert(alertId, 'La contraseña debe tener mínimo 6 caracteres.', 'error');
+
+        try {
+            await createEmployeeAccount({
+                cedula,
+                nombre,
+                password,
+                fechaIngreso,
+                tipoContrato
+            });
+            document.getElementById('new-employee-cedula').value = '';
+            document.getElementById('new-employee-name').value = '';
+            document.getElementById('new-employee-pass').value = '';
+            document.getElementById('new-employee-date').value = '';
+            document.getElementById('new-employee-contract').value = '';
+            showAlert(alertId, `Acceso creado para ${nombre}. El trabajador puede ingresar con su cédula.`, 'success');
+        } catch (error) {
+            showAlert(alertId, getEmployeeCreationErrorMessage(error), 'error');
+        }
+    });
+
+    document.getElementById('btn-upload-employees').addEventListener('click', () => {
+        const fileInput = document.getElementById('employee-bulk-file');
+        const file = fileInput.files[0];
+        const alertId = 'employee-bulk-alert';
+        if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador.', 'error');
+        if (!file) return showAlert(alertId, 'Seleccione un archivo Excel o CSV.', 'error');
+
+        setBulkProgress(0, 'Iniciando');
+
+        const reader = new FileReader();
+        reader.onload = async event => {
+            try {
+                const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array', cellDates: true });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+                if (!rows.length) {
+                    setBulkProgress(0, 'Sin filas');
+                    return showAlert(alertId, 'El archivo no contiene trabajadores.', 'error');
+                }
+
+                let created = 0;
+                const rejected = [];
+                for (let index = 0; index < rows.length; index += 1) {
+                    const rowNumber = index + 2;
+                    const row = rows[index];
+                    const cedula = extractDigits(getBulkEmployeeValue(row, ['cedula', 'cc', 'documento', 'identificacion', 'cedulaempleado']));
+                    const nombre = String(getBulkEmployeeValue(row, ['nombre', 'nombres', 'nombreempleado', 'empleado']) || '').trim();
+                    const password = String(getBulkEmployeeValue(row, ['password', 'contrasena', 'clave', 'pass']) || '').trim();
+                    const rawFechaIngreso = getBulkEmployeeValue(row, ['fechaingreso', 'fecha', 'fechaingresado', 'ingreso', 'fechadeingreso', 'fechaingresocliente']);
+                    const fechaIngreso = rawFechaIngreso instanceof Date
+                        ? rawFechaIngreso.toISOString().slice(0, 10)
+                        : normalizeDateEs(String(rawFechaIngreso || '').trim());
+                    const tipoContrato = normalizeContratoValue(getBulkEmployeeValue(row, ['tipocontrato', 'contrato', 'tipodecontrato', 'tipocontratoempleado', 'tipo']));
+
+                    if (cedula.length < 6 || cedula.length > 12 || !nombre || password.length < 6 || !fechaIngreso || !tipoContrato) {
+                        rejected.push(`Fila ${rowNumber}: datos incompletos o inválidos`);
+                    }
+
+                    try {
+                        if (cedula.length >= 6 && cedula.length <= 12 && nombre && password.length >= 6 && fechaIngreso && tipoContrato) {
+                            if (index > 0) await wait(1200);
+                            await createEmployeeAccountWithRetry({ cedula, nombre, password, fechaIngreso, tipoContrato });
+                            created += 1;
+                        }
+                    } catch (error) {
+                        const reason = getEmployeeCreationErrorMessage(error);
+                        rejected.push(`Fila ${rowNumber}: ${reason}`);
+                    }
+
+                    const progress = Math.round(((index + 1) / rows.length) * 100);
+                    setBulkProgress(progress, `Procesando filas ${index + 1}/${rows.length}`);
+                }
+
+                setBulkProgress(100, 'Finalizado');
+                fileInput.value = '';
+                const details = rejected.length ? ` ${rejected.slice(0, 4).join('. ')}${rejected.length > 4 ? '.' : ''}` : '';
+                showAlert(alertId, `Se crearon ${created} acceso(s). Rechazados: ${rejected.length}.${details}`, rejected.length ? 'error' : 'success');
+            } catch (error) {
+                setBulkProgress(0, 'Error');
+                showAlert(alertId, 'No se pudo leer el archivo. Verifique que sea Excel o CSV.', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
 
     document.getElementById('btn-login').addEventListener('click', async () => {
         const email = document.getElementById('admin-email').value;
@@ -1414,12 +2164,85 @@
         }
     });
 
+    document.getElementById('btn-employee-login').addEventListener('click', async () => {
+        const cedula = extractDigits(document.getElementById('employee-cedula').value);
+        const pass = document.getElementById('employee-pass').value;
+        if (cedula.length < 6 || cedula.length > 12) return showAlert('employee-login-alert', 'Ingresa una cédula válida.', 'error');
+        if (!pass) return showAlert('employee-login-alert', 'Ingresa tu contraseña.', 'error');
+
+        try {
+            await signInWithEmailAndPassword(auth, `${cedula}@empleados.censer.local`, pass);
+        } catch (e) {
+            showAlert('employee-login-alert', 'Cédula o contraseña no válidas.', 'error');
+        }
+    });
+
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+    document.getElementById('btn-employee-logout').addEventListener('click', async () => {
+        await signOut(auth);
+        document.body.classList.remove('portal-authenticated');
+        document.querySelectorAll('.employee-view').forEach(view => view.classList.remove('active'));
+    });
+    document.getElementById('btn-employee-logout-top').addEventListener('click', () => document.getElementById('btn-employee-logout').click());
+    document.getElementById('btn-refresh-employee').addEventListener('click', () => {
+        const cedula = document.body.dataset.employeeCedula || '';
+        if (document.getElementById('employee-view-trabajo').classList.contains('active')) loadTrabajoDiario(cedula);
+        if (document.getElementById('employee-view-prestamos').classList.contains('active')) loadPrestamos(cedula);
+    });
+    document.getElementById('btn-consultar-mi-informacion').addEventListener('click', () => {
+        const cedula = document.body.dataset.employeeCedula || '';
+        document.getElementById('cedula').value = cedula;
+        closePortal();
+        consultarDescuentos();
+    });
 
     onAuthStateChanged(auth, user => {
-        document.getElementById('admin-login-form').style.display = user ? 'none' : 'block';
-        document.getElementById('admin-panel').style.display = user ? 'block' : 'none';
-        if (user) {
+        const isEmployee = Boolean(user?.email?.endsWith('@empleados.censer.local'));
+        document.body.classList.toggle('portal-authenticated', isEmployee);
+        document.body.classList.remove('welcome-complete');
+        clearTimeout(welcomeTimer);
+        document.getElementById('admin-login-form').style.display = user && !isEmployee ? 'none' : 'block';
+        document.getElementById('admin-panel').style.display = user && !isEmployee ? 'block' : 'none';
+        if (isEmployee) {
+            const cedula = user.email.split('@')[0];
+            const nombreCuenta = user.displayName || 'trabajador';
+            document.body.dataset.employeeCedula = cedula;
+            document.getElementById('portal-welcome-name').textContent = nombreCuenta;
+            document.getElementById('employee-info-name').textContent = nombreCuenta;
+            document.getElementById('employee-info-cedula').textContent = cedula;
+            document.getElementById('certificate-name').textContent = nombreCuenta;
+            document.getElementById('certificate-cedula').textContent = cedula;
+            document.getElementById('employee-heading-name').textContent = nombreCuenta.split(' ')[0] || 'trabajador';
+            document.getElementById('employee-user-name').textContent = nombreCuenta;
+            document.getElementById('employee-user-initials').textContent = nombreCuenta.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+            getDoc(doc(db, 'empleados', cedula)).then(profileSnapshot => {
+                if (profileSnapshot.exists()) {
+                    const profile = profileSnapshot.data();
+                    document.getElementById('portal-welcome-name').textContent = profile.nombre || nombreCuenta;
+                    document.getElementById('employee-info-name').textContent = profile.nombre || nombreCuenta;
+                    document.getElementById('employee-info-date').textContent = profile.fechaIngreso || 'No registrado';
+                    document.getElementById('employee-info-contract').textContent = profile.tipoContrato || 'No registrado';
+                    document.getElementById('certificate-name').textContent = profile.nombre || nombreCuenta;
+                    document.getElementById('certificate-date').textContent = profile.fechaIngreso || 'No registrado';
+                    document.getElementById('certificate-contract').textContent = profile.tipoContrato || 'No registrado';
+                    document.getElementById('employee-heading-name').textContent = (profile.nombre || nombreCuenta).split(' ')[0] || 'trabajador';
+                    document.getElementById('employee-user-name').textContent = profile.nombre || nombreCuenta;
+                    document.getElementById('employee-user-initials').textContent = (profile.nombre || nombreCuenta).split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+                } else {
+                    document.getElementById('employee-info-date').textContent = 'No registrado';
+                    document.getElementById('employee-info-contract').textContent = 'No registrado';
+                    document.getElementById('certificate-date').textContent = 'No registrado';
+                    document.getElementById('certificate-contract').textContent = 'No registrado';
+                }
+            }).catch(() => {
+                document.getElementById('employee-info-date').textContent = 'No disponible';
+                document.getElementById('employee-info-contract').textContent = 'No disponible';
+                document.getElementById('certificate-date').textContent = 'No disponible';
+                document.getElementById('certificate-contract').textContent = 'No disponible';
+            });
+            welcomeTimer = setTimeout(() => document.body.classList.add('welcome-complete'), 2200);
+        }
+        if (user && !isEmployee) {
             loadAdminRecords();
             loadAdminAnticipos();
         }
