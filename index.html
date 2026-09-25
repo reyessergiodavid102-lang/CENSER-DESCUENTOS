@@ -1904,24 +1904,25 @@
         return '';
     };
 
-    const extractCedulaFromFileName = (fileName) => {
-        const normalized = fileName.toLowerCase();
-        const patterns = [
-            /(\d{6,12})/g,
-            /cedula[^\d]*(\d{6,12})/i,
-            /(\d{6,12})[^\d]*\.(pdf|PDF)$/i,
-            /[a-z]+[^\d]*(\d{6,12})/i
-        ];
+   const extractCedulaFromFileName = (fileName) => {
+    const normalized = fileName.toLowerCase();
 
-        const matches = patterns
-            .flatMap(pattern => Array.from(normalized.matchAll(pattern)))
-            .map(match => match[1] || match[0])
-            .filter(Boolean)
-            .map(value => value.replace(/\D/g, ''))
-            .filter(value => value.length >= 6 && value.length <= 12);
+    const patterns = [
+      /(\d{6,12})/g,
+      /cedula[^\d]*(\d{6,12})/gi,
+      /(\d{6,12})[^\d]*\.(pdf|PDF)$/gi,
+      /[a-z]+[^\d]*(\d{6,12})/gi,
+    ];
 
-        return matches[0] || '';
-    };
+    const matches = patterns
+      .flatMap(pattern => Array.from(normalized.matchAll(pattern)))
+      .map(match => match[1] || match[0])
+      .filter(Boolean)
+      .map(value => value.replace(/\D/g, ''))
+      .filter(value => value.length >= 6 && value.length <= 12);
+
+    return matches[0] || '';
+  };
 
     const procesarPdfs = async () => {
         const fileInput = document.getElementById('pdf-files');
