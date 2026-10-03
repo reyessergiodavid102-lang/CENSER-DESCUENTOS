@@ -1169,19 +1169,9 @@
 
     const registerSiteVisit = async () => {
         try {
-            const credential = visitorAuth.currentUser
-                ? { user: visitorAuth.currentUser }
-                : await signInAnonymously(visitorAuth);
+            if (!visitorAuth.currentUser) await signInAnonymously(visitorAuth);
             const date = new Date().toISOString().slice(0, 10);
-            const visitId = `${credential.user.uid}_${date}`;
-            const visitReference = doc(visitorDb, 'visitasWeb', visitId);
-            const existingVisit = await getDoc(visitReference);
-            if (existingVisit.exists()) {
-                siteVisitErrorCode = '';
-                return;
-            }
-
-            await setDoc(visitReference, {
+            await addDoc(collection(visitorDb, 'visitasWeb'), {
                 fecha: date,
                 creadoEn: serverTimestamp()
             });
