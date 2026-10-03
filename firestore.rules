@@ -16,7 +16,11 @@ service cloud.firestore {
         && request.resource.data.fecha is string
         && request.resource.data.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
         && request.resource.data.creadoEn == request.time;
-      allow read: if isSiteStatsAdmin();
+      allow get: if isSiteStatsAdmin()
+        || (request.auth != null
+          && request.auth.token.firebase.sign_in_provider == 'anonymous'
+          && visitId.matches(request.auth.uid + '_[0-9]{4}-[0-9]{2}-[0-9]{2}'));
+      allow list: if isSiteStatsAdmin();
       allow update, delete: if false;
     }
 

@@ -1157,6 +1157,15 @@
     let nominaData = [];
     let pdfData = [];
     let welcomeTimer;
+    let siteVisitErrorCode = '';
+
+    const getSiteVisitErrorMessage = code => {
+        if (code === 'auth/operation-not-allowed') return 'Activa el proveedor Anonymous en Firebase Authentication.';
+        if (code === 'auth/unauthorized-domain') return 'Agrega el dominio de Render a los dominios autorizados de Firebase Authentication.';
+        if (code === 'permission-denied') return 'Firestore rechazó la operación. Publica las reglas actualizadas de firestore.rules.';
+        if (code === 'auth/network-request-failed') return 'No se pudo conectar con Firebase. Revisa la conexión e inténtalo de nuevo.';
+        return `No se pudo registrar la visita${code ? ` (${code})` : ''}. Revisa la configuración de Firebase.`;
+    };
 
     const registerSiteVisit = async () => {
         try {
@@ -1165,16 +1174,27 @@
                 : await signInAnonymously(visitorAuth);
             const date = new Date().toISOString().slice(0, 10);
             const visitId = `${credential.user.uid}_${date}`;
-            await setDoc(doc(visitorDb, 'visitasWeb', visitId), {
+            const visitReference = doc(visitorDb, 'visitasWeb', visitId);
+            const existingVisit = await getDoc(visitReference);
+            if (existingVisit.exists()) {
+                siteVisitErrorCode = '';
+                return;
+            }
+
+            await setDoc(visitReference, {
                 fecha: date,
                 creadoEn: serverTimestamp()
             });
+            siteVisitErrorCode = '';
         } catch (error) {
-            if (error?.code !== 'permission-denied') console.warn('No se pudo registrar la visita anónima.', error?.code || 'error');
+            siteVisitErrorCode = error?.code || '';
+            console.warn('No se pudo registrar la visita anónima.', siteVisitErrorCode || 'error');
+        }
+
+        if (auth.currentUser && !auth.currentUser.email?.endsWith('@empleados.censer.local')) {
+            loadSiteVisitStats();
         }
     };
-
-    void registerSiteVisit();
 
     const switchTab = (activeTab) => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -2424,8 +2444,9 @@
                 item.append(label, value);
                 dailyList.appendChild(item);
             });
+            if (siteVisitErrorCode) showAlert(alertId, getSiteVisitErrorMessage(siteVisitErrorCode), 'error');
         } catch (error) {
-            showAlert(alertId, 'No se pudieron consultar las visitas. Verifique que las reglas de Firestore estén publicadas.', 'error');
+            showAlert(alertId, getSiteVisitErrorMessage(error?.code || ''), 'error');
         }
     };
 
@@ -2673,6 +2694,8 @@
             loadSiteVisitStats();
         }
     });
+
+    void registerSiteVisit();
 </script>
 </body>
 </html>
