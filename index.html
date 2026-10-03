@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Censer JR S.A.S - Consulta de Descuentos</title>
     <link rel="icon" href="logo.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
     <!-- Librería XLSX para procesar Excel/CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -54,6 +57,7 @@
         .header p { margin: 0; color: var(--muted); font-size: .95rem; }
 
         .portal-copy, .portal-security, .portal-close, #portal-session, #portal-welcome { display: none; }
+        .admin-copy, .admin-close { display: none; }
 
         body.portal-open {
             display: grid;
@@ -103,6 +107,20 @@
         body.portal-open .portal-copy h1 { display: block; margin: 0; color: #102d2b; font: 800 clamp(3.2rem, 6vw, 5.1rem)/.97 Arial, sans-serif; letter-spacing: -.06em; }
         body.portal-open .portal-copy h1 span { color: #2d9274; }
         body.portal-open .portal-copy p { display: block; max-width: 390px; margin: 28px 0 0; color: #83938c; font: 400 1rem/1.55 Arial, sans-serif; }
+        body.portal-open.admin-open .portal-copy { display: none; }
+        body.admin-open .admin-copy { display: block; margin: auto 0; max-width: 540px; }
+        body.admin-open .admin-copy .eyebrow { margin: 0 0 22px; color: #bd6a44; font: 700 .72rem Arial, sans-serif; letter-spacing: .22em; text-transform: uppercase; }
+        body.admin-open .admin-copy h1 { margin: 0; color: #102d2b; font: 800 clamp(2.8rem, 5vw, 4.5rem)/.98 Arial, sans-serif; }
+        body.admin-open .admin-copy h1 span { color: #d62828; }
+        body.admin-open .admin-copy p { max-width: 390px; margin: 24px 0 0; color: #83938c; font: 400 1rem/1.55 Arial, sans-serif; }
+        body.admin-open .admin-close { display: inline-flex; }
+        body.portal-open.admin-open #admin-login-form { display: block !important; }
+        body.portal-open.admin-open #admin-panel { display: none !important; }
+        body.portal-open.admin-open.admin-authenticated #admin-login-form { display: none !important; }
+        body.portal-open.admin-open.admin-authenticated #admin-panel { display: block !important; }
+        body.portal-open.admin-open #portal-login-form,
+        body.portal-open.admin-open #portal-session,
+        body.portal-open.admin-open #portal-welcome { display: none !important; }
         body.portal-open .portal-security { display: flex; align-items: center; gap: 12px; color: #647b72; font: 700 .84rem Arial, sans-serif; }
         body.portal-open .portal-security::before { width: 14px; height: 14px; content: ''; background: #61c79b; border: 5px solid #d9f0e5; border-radius: 50%; box-shadow: 0 0 0 1px #bfe4d2; }
         body.portal-open .portal-security small { display: block; margin-top: 4px; color: #9aaba4; font-weight: 400; }
@@ -189,9 +207,60 @@
         body.portal-open.portal-authenticated #portal-session > .btn-secondary { margin-top: 28px; }
         body.portal-open.portal-authenticated .employee-view { max-width: 1180px; margin-right: auto; margin-left: auto; }
         .admin-upload-note { max-width: 760px; margin: -6px 0 14px; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+        body.admin-open #admin-panel { width: 100%; max-height: calc(100vh - 96px); overflow: auto; margin: 0; }
+        body.portal-open.admin-open.admin-authenticated { display: block; min-height: 100vh; padding: 0; background: #f4f7f4; }
+        body.portal-open.admin-open.admin-authenticated .container { display: block; width: 100%; max-width: none; min-height: 100vh; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+        body.portal-open.admin-open.admin-authenticated .header { display: none; }
+        body.portal-open.admin-open.admin-authenticated .workspace { display: block; min-height: 100vh; padding: 0; }
+        body.portal-open.admin-open.admin-authenticated #tab-admin { display: block; width: 100%; }
+        body.portal-open.admin-open.admin-authenticated #admin-panel { width: min(1480px, 100%); max-height: none; overflow: visible; margin: 0 auto; padding: clamp(22px, 4vw, 52px); background: transparent; border: 0; border-radius: 0; animation: admin-dashboard-in .55s ease-out both; }
+        .admin-dashboard-topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 26px; padding-bottom: 18px; border-bottom: 1px solid #dce7df; }
+        .admin-dashboard-brand, .admin-dashboard-actions { display: flex; align-items: center; gap: 16px; }
+        .admin-dashboard-brand img { width: 100px; height: auto; }
+        .admin-dashboard-brand span { display: block; margin-bottom: 4px; color: #79877f; font-size: .72rem; text-transform: uppercase; }
+        .admin-dashboard-brand h1 { margin: 0; color: #163c35; font-size: 1.5rem; }
+        .admin-dashboard-actions { color: var(--muted); font-size: .85rem; }
+        .admin-dashboard-actions .btn { width: auto; margin: 0; padding: 10px 16px; }
+        .employee-provisioning { margin: 0 0 18px; padding: 22px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+        .admin-load-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+        .admin-upload-card { min-width: 0; padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+        .admin-upload-card h3 { margin: 0 0 8px; color: var(--green-dark); font-size: 1.08rem; }
+        .admin-upload-card p { margin: 0 0 14px; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+        .admin-upload-card .form-group { margin-bottom: 12px; }
+        .admin-upload-card .btn { min-height: 44px; }
+        .admin-upload-card-wide { grid-column: 1 / -1; }
+        .admin-admin-actions { margin-top: 18px; }
+        .admin-records-card { margin-top: 18px; }
+        .admin-visit-stats { margin: 0 0 18px; padding: 22px; background: linear-gradient(135deg, #fff 0%, #f4f7f1 100%); border: 1px solid var(--line); border-radius: 8px; }
+        .admin-visit-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+        .admin-visit-heading h2 { margin: 0 0 5px; color: var(--green-dark); font-size: 1.25rem; }
+        .admin-visit-heading p { margin: 0; color: var(--muted); font-size: .86rem; }
+        .admin-visit-heading .btn { width: auto; min-width: 130px; }
+        .admin-visit-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .admin-visit-metric { min-width: 0; padding: 16px; background: #fff; border: 1px solid #e0e8df; border-radius: 6px; }
+        .admin-visit-metric span { display: block; color: var(--muted); font-size: .78rem; }
+        .admin-visit-metric strong { display: block; margin-top: 7px; color: var(--green-dark); font-size: 1.7rem; }
+        .admin-visit-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+        .admin-visit-day { min-width: 0; padding: 10px 8px; background: #edf3eb; border-radius: 5px; text-align: center; }
+        .admin-visit-day span { display: block; color: var(--muted); font-size: .68rem; }
+        .admin-visit-day strong { display: block; margin-top: 5px; color: var(--green-dark); font-size: .95rem; }
+        @media (max-width: 650px) {
+            .admin-visit-metrics { grid-template-columns: 1fr; }
+            .admin-visit-days { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .admin-visit-heading { align-items: stretch; flex-direction: column; }
+            .admin-visit-heading .btn { width: 100%; }
+        }
+        @keyframes admin-dashboard-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (min-width: 601px) and (max-width: 950px) {
             body.portal-open.portal-authenticated .employee-info { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 700px) {
+            .admin-load-grid { grid-template-columns: 1fr; }
+            .admin-upload-card-wide { grid-column: auto; }
+            .admin-dashboard-topbar { align-items: flex-start; flex-direction: column; }
+            .admin-dashboard-actions { width: 100%; justify-content: space-between; }
         }
 
         .portal-link {
@@ -213,6 +282,8 @@
         }
         .portal-link:hover { background: #d8f2e2; box-shadow: 0 8px 20px rgba(18, 132, 72, .16); transform: translateY(-2px); }
         .portal-link svg { width: 17px; height: 17px; }
+        .portal-link.admin-link { right: auto; left: 20px; color: #8b2024; background: #fff0f0; border-color: #f1c5c5; }
+        .portal-link.admin-link:hover { background: #ffe3e3; box-shadow: 0 8px 20px rgba(150, 32, 36, .14); }
 
         .whatsapp-float {
             position: fixed;
@@ -240,6 +311,7 @@
         .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; padding: 6px; background: var(--wash); border-radius: 12px; }
         .tab-btn { padding: 12px 16px; color: var(--muted); background: transparent; border: 0; border-radius: 8px; font: 700 .95rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
         .tab-btn.active { color: var(--paper); background: var(--red); box-shadow: 0 4px 12px rgba(214, 40, 40, .2); }
+        #btn-tab-admin { display: none; }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: appear .25s ease-out; }
@@ -365,18 +437,18 @@
         .alert-error { color: #8b2024; background: #fff0f0; border: 1px solid #f1c5c5; }
         .alert-success { color: #14623b; background: #eef9f1; border: 1px solid #bfdfc8; }
 
-        .employee-bulk-progress {
+        .upload-progress {
             display: none;
             margin-top: 14px;
         }
-        .employee-bulk-progress-text {
+        .upload-progress-text {
             display: block;
             margin-bottom: 8px;
             color: var(--green-dark);
             font-weight: 700;
             font-size: .88rem;
         }
-        .employee-bulk-progress-bar {
+        .upload-progress-bar {
             width: 100%;
             height: 12px;
             border-radius: 999px;
@@ -384,7 +456,7 @@
             border: 1px solid #cfe0d4;
             background: #eaf2ee;
         }
-        .employee-bulk-progress-fill {
+        .upload-progress-fill {
             width: 0%;
             height: 100%;
             border-radius: inherit;
@@ -418,6 +490,7 @@
             body { padding: 10px; }
             .header { padding-top: 78px; }
             .portal-link { top: 14px; right: 14px; }
+            .portal-link.admin-link { right: auto; left: 14px; }
             .whatsapp-float { right: 16px; bottom: 16px; }
             .workspace { padding: 18px 12px; }
             table { display: block; overflow-x: auto; white-space: nowrap; }
@@ -444,12 +517,144 @@
             body.portal-open.portal-authenticated .employee-info div { min-height: 86px; padding: 14px; }
             body.portal-open.portal-authenticated .employee-info strong { font-size: .98rem; }
         }
+
+        :root {
+            --red: #b83a31;
+            --green: #267348;
+            --green-dark: #174d37;
+            --mint: #eaf3e9;
+            --ink: #20332a;
+            --muted: #69786f;
+            --line: #dbe5dc;
+            --paper: #fff;
+            --wash: #f1f5ef;
+            --harvest: #c28a3d;
+        }
+
+        body {
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #edf3ed 0%, #f7f8f3 58%, #f7f1e9 100%);
+        }
+        body:not(.portal-open) { padding: 30px 22px; }
+        .container {
+            max-width: 1080px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 18px 52px rgba(25, 57, 39, .10);
+        }
+        .header {
+            padding: 34px 28px 30px;
+            background: linear-gradient(145deg, #fbfdf9, #f1f6ef);
+        }
+        .header::after {
+            position: absolute;
+            right: 0;
+            bottom: -1px;
+            left: 0;
+            height: 3px;
+            content: '';
+            background: linear-gradient(90deg, var(--green-dark) 0 68%, var(--harvest) 68% 82%, var(--red) 82%);
+        }
+        .header img { width: min(232px, 80%); }
+        .header h1 {
+            margin: 18px 0 7px;
+            color: var(--green-dark);
+            font: 400 clamp(1.65rem, 3.2vw, 2.15rem)/1.15 'DM Serif Display', Georgia, serif;
+        }
+        .header p { color: var(--muted); font-size: .92rem; }
+        .workspace { padding: 30px clamp(20px, 4vw, 52px) 44px; }
+        .portal-link {
+            padding: 10px 14px;
+            border-radius: 7px;
+            font: 700 .82rem 'DM Sans', sans-serif;
+            box-shadow: 0 3px 10px rgba(25, 57, 39, .07);
+        }
+        .tabs {
+            gap: 6px;
+            padding: 6px;
+            background: #eff4ee;
+            border: 1px solid #e1e9e1;
+            border-radius: 8px;
+        }
+        .tab-btn {
+            min-height: 42px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font: 600 .9rem 'DM Sans', sans-serif;
+        }
+        .tab-btn.active {
+            background: var(--green-dark);
+            box-shadow: 0 4px 12px rgba(23, 77, 55, .18);
+        }
+        label { color: #334a3c; font-size: .83rem; }
+        input, select {
+            min-height: 44px;
+            padding: 11px 13px;
+            background: #fff;
+            border-color: #cbd9ce;
+            border-radius: 6px;
+            font: 400 .94rem 'DM Sans', sans-serif;
+        }
+        input:focus, select:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(38, 115, 72, .12);
+        }
+        .btn {
+            min-height: 44px;
+            border-radius: 6px;
+            background: var(--green);
+            font: 700 .92rem 'DM Sans', sans-serif;
+            transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+        }
+        .btn:hover {
+            background: var(--green-dark);
+            box-shadow: 0 5px 13px rgba(23, 77, 55, .16);
+            transform: translateY(-1px);
+        }
+        .btn-secondary { background: #66766c; }
+        .btn-danger { background: var(--red); }
+        .result-box, .admin-box {
+            border-color: var(--line);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(25, 57, 39, .05);
+        }
+        .total-card {
+            background: #f0f5ed;
+            border-left-color: var(--harvest);
+            border-radius: 6px;
+        }
+        th { background: var(--green-dark); }
+        .alert { border-radius: 6px; line-height: 1.45; }
+        .alert-error { color: #8c302b; background: #fbefec; border-color: #ebc8c2; }
+        .alert-success { color: #205b3e; background: #edf5ec; border-color: #c9dfca; }
+        .login-card {
+            background: #fff;
+            border-color: var(--line);
+            border-radius: 8px;
+            box-shadow: 0 14px 38px rgba(25, 57, 39, .09);
+        }
+        .login-card h2 { color: var(--green-dark); font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; }
+        .employee-info div, .loan-summary div, .certificate-card { border-radius: 6px; }
+        .employee-bulk-upload, .document-card { border-radius: 7px; }
+
+        @media (max-width: 600px) {
+            body:not(.portal-open) { padding: 10px; }
+            .header { padding-right: 18px; padding-left: 18px; }
+            .workspace { padding: 20px 14px 28px; }
+            .tabs { margin-bottom: 20px; }
+            .tab-btn { min-height: 40px; padding: 9px 8px; font-size: .82rem; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
+        <a class="portal-link admin-link" href="#tab-admin" id="btn-portal-admin" aria-label="Ingresar a administración">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v5c0 5.2 3.4 10 8 12 4.6-2 8-6.8 8-12V5l-8-3Zm0 4.1 5 1.9v2c0 3.8-2.2 7.4-5 9-2.8-1.6-5-5.2-5-9V8.1l5-2Z"/></svg>
+            Administrador
+        </a>
         <a class="portal-link" href="#tab-admin" id="btn-portal-empleados" aria-label="Ingresar al portal de empleados">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v5c0 5.2 3.4 10 8 12 4.6-2 8-6.8 8-12V5l-8-3Zm0 4.1 5 1.9v2c0 3.8-2.2 7.4-5 9-2.8-1.6-5-5.2-5-9V8.1l5-2Zm-1 3.4v3.1H8.2v2H11v2.7h2v-2.7h2.8v-2H13V9.5h-2Z"/></svg>
             Portal de empleados
@@ -462,17 +667,25 @@
             <h1>Tu<br>información,<br><span>en un solo<br>lugar.</span></h1>
             <p>Accede para consultar tus datos, revisar tu progreso y mantener tu información al día.</p>
         </div>
+        <div class="admin-copy">
+            <p class="eyebrow">Acceso administrativo</p>
+            <h1>Gestión<br><span>de datos.</span></h1>
+            <p>Administra la información laboral y carga los registros de forma segura.</p>
+        </div>
         <div class="portal-security">
             <div>Acceso protegido<small>Sesión privada y segura</small></div>
         </div>
         <button class="portal-close" id="btn-cerrar-portal" type="button" aria-label="Volver a las consultas públicas">
             <span aria-hidden="true">&#8592;</span> Volver a consultas
         </button>
+        <button class="portal-close admin-close" id="btn-cerrar-admin" type="button" aria-label="Volver a las consultas públicas">
+            <span aria-hidden="true">&#8592;</span> Volver a consultas
+        </button>
     </div>
 
     <div class="workspace">
         <div class="tabs">
-            <button class="tab-btn active" id="btn-tab-empleado">Consulta Empleado</button>
+            <button class="tab-btn active" id="btn-tab-empleado">Consulta Descuentos</button>
             <button class="tab-btn" id="btn-tab-anticipo">Solicitar Anticipo</button>
             <button class="tab-btn" id="btn-tab-rodamiento">Rodamiento</button>
             <button class="tab-btn" id="btn-tab-documentos">Volantes y Tirillas</button>
@@ -662,8 +875,8 @@
             </div>
 
             <div id="admin-login-form" class="login-card">
-                <h2>Portal de empleados</h2>
-                <p>Ingresa con tu usuario y contraseña para acceder al área privada.</p>
+                <h2>Administración</h2>
+                <p>Ingresa tu usuario o correo y contraseña para gestionar la información.</p>
                 <div class="form-group">
                     <label for="admin-email">Usuario o correo electrónico</label>
                     <input type="email" id="admin-email" value="censerjrsas@hotmail.com">
@@ -672,11 +885,28 @@
                     <label for="admin-pass">Contraseña</label>
                     <input type="password" id="admin-pass" placeholder="Escribe tu contraseña">
                 </div>
-                <button class="btn" id="btn-login">Ingresar al portal</button>
+                <button class="btn" id="btn-login">Ingresar a administración</button>
                 <div id="login-alert" class="alert"></div>
             </div>
 
             <div id="admin-panel" class="admin-box" style="display: none;">
+                <div class="admin-dashboard-topbar">
+                    <div class="admin-dashboard-brand"><img src="logo.svg" alt="Censer JR S.A.S"><div><span>Panel seguro</span><h1>Administración</h1></div></div>
+                    <div class="admin-dashboard-actions"><span id="admin-user-email"></span><button class="btn btn-secondary" id="btn-logout" type="button">Cerrar sesión</button></div>
+                </div>
+                <section class="admin-visit-stats" aria-labelledby="admin-visit-title">
+                    <div class="admin-visit-heading">
+                        <div><h2 id="admin-visit-title">Visitas al sitio</h2><p>Conteo anónimo: un navegador puede sumar una visita por día.</p></div>
+                        <button class="btn btn-secondary" id="btn-refresh-visits" type="button">Actualizar</button>
+                    </div>
+                    <div class="admin-visit-metrics">
+                        <div class="admin-visit-metric"><span>Total acumulado</span><strong id="site-visits-total">--</strong></div>
+                        <div class="admin-visit-metric"><span>Hoy</span><strong id="site-visits-today">--</strong></div>
+                        <div class="admin-visit-metric"><span>Últimos 7 días</span><strong id="site-visits-week">--</strong></div>
+                    </div>
+                    <div id="site-visits-days" class="admin-visit-days" aria-live="polite"></div>
+                    <div id="site-visits-alert" class="alert"></div>
+                </section>
                 <div class="employee-provisioning">
                     <h3>Crear acceso de trabajador</h3>
                     <p style="color: var(--muted); font-size: 0.9rem;">Registre las credenciales que usará el trabajador para ingresar al portal.</p>
@@ -719,58 +949,58 @@
                             <input type="file" id="employee-bulk-file" accept=".xlsx, .xls, .csv">
                         </div>
                         <button class="btn" id="btn-upload-employees">Cargar trabajadores</button>
-                        <div id="employee-bulk-progress" class="employee-bulk-progress" aria-live="polite">
-                            <span id="employee-bulk-progress-text" class="employee-bulk-progress-text">0%</span>
-                            <div class="employee-bulk-progress-bar">
-                                <div id="employee-bulk-progress-fill" class="employee-bulk-progress-fill"></div>
+                        <div id="employee-bulk-progress" class="upload-progress" aria-live="polite">
+                            <span class="upload-progress-text">0%</span>
+                            <div class="upload-progress-bar" role="progressbar" aria-label="Progreso de carga masiva de trabajadores" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                <div class="upload-progress-fill"></div>
                             </div>
                         </div>
                         <div id="employee-bulk-alert" class="alert"></div>
                     </div>
                 </div>
-                <h3>Cargar Base de Datos</h3>
-                <p style="color: var(--muted); font-size: 0.9rem;">Suba un archivo (.xlsx o .csv) con las columnas: <strong>cedula, nombre, mes, concepto, monto</strong></p>
-                
-                <div class="form-group">
-                    <input type="file" id="excel-file" accept=".xlsx, .xls, .csv">
+                <div class="admin-load-grid">
+                    <section class="admin-upload-card">
+                        <h3>Cargar descuentos</h3>
+                        <p>Excel o CSV con las columnas: <strong>cedula, nombre, mes, concepto, monto</strong>.</p>
+                        <div class="form-group"><input type="file" id="excel-file" accept=".xlsx, .xls, .csv"></div>
+                        <button class="btn" id="btn-procesar">Cargar Datos Masivos</button>
+                        <div id="descuentos-progress" class="upload-progress" aria-live="polite"><span class="upload-progress-text">0%</span><div class="upload-progress-bar" role="progressbar" aria-label="Progreso de carga de descuentos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="upload-progress-fill"></div></div></div>
+                    </section>
+                    <section class="admin-upload-card">
+                        <h3>Cargar base de rodamiento</h3>
+                        <p>Excel o CSV con las columnas: <strong>fecha, cedula, nombre, descripcion</strong>. Ejemplo: <strong>06/08/2026, 123456789, Carlos, Pago de Rodamiento</strong>.</p>
+                        <div class="form-group"><input type="file" id="rodamiento-file" accept=".xlsx, .xls, .csv"></div>
+                        <button class="btn" id="btn-procesar-rodamiento">Cargar Datos de Rodamiento</button>
+                        <div id="rodamiento-progress" class="upload-progress" aria-live="polite"><span class="upload-progress-text">0%</span><div class="upload-progress-bar" role="progressbar" aria-label="Progreso de carga de rodamiento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="upload-progress-fill"></div></div></div>
+                    </section>
+                    <section class="admin-upload-card">
+                        <h3>Cargar trabajo diario</h3>
+                        <p>Excel o CSV con las columnas: <strong>fecha, cedula, nombre, labor, cantidad</strong>. Cada fila se relaciona con el trabajador mediante su cédula.</p>
+                        <div class="form-group"><input type="file" id="trabajo-diario-file" accept=".xlsx, .xls, .csv"></div>
+                        <button class="btn" id="btn-procesar-trabajo">Cargar Trabajo Diario</button>
+                        <div id="trabajo-progress" class="upload-progress" aria-live="polite"><span class="upload-progress-text">0%</span><div class="upload-progress-bar" role="progressbar" aria-label="Progreso de carga de trabajo diario" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="upload-progress-fill"></div></div></div>
+                    </section>
+                    <section class="admin-upload-card">
+                        <h3>Cargar préstamos</h3>
+                        <p>Excel o CSV con las columnas: <strong>fecha, cedula, nombre, concepto, monto, cuota, cuotasPagadas, totalCuotas</strong>.</p>
+                        <div class="form-group"><input type="file" id="prestamos-file" accept=".xlsx, .xls, .csv"></div>
+                        <button class="btn" id="btn-procesar-prestamos">Cargar Préstamos</button>
+                        <div id="prestamos-progress" class="upload-progress" aria-live="polite"><span class="upload-progress-text">0%</span><div class="upload-progress-bar" role="progressbar" aria-label="Progreso de carga de préstamos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="upload-progress-fill"></div></div></div>
+                    </section>
+                    <section class="admin-upload-card admin-upload-card-wide">
+                        <h3>Cargar volantes en PDF</h3>
+                        <p>Seleccione el mes y uno o varios PDF. Cada archivo debe corresponder a un empleado y tener la cédula en el nombre, por ejemplo: <strong>479511_Carlos.pdf</strong>.</p>
+                        <div class="filter-grid">
+                            <div class="form-group"><label for="pdf-periodo">Mes del volante:</label><input type="month" id="pdf-periodo"></div>
+                            <div class="form-group"><label for="pdf-files">Archivos PDF</label><input type="file" id="pdf-files" accept="application/pdf,.pdf" multiple></div>
+                        </div>
+                        <button class="btn" id="btn-procesar-pdf">Cargar PDFs</button>
+                        <div id="pdf-progress" class="upload-progress" aria-live="polite"><span class="upload-progress-text">0%</span><div class="upload-progress-bar" role="progressbar" aria-label="Progreso de carga de volantes PDF" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="upload-progress-fill"></div></div></div>
+                    </section>
                 </div>
-                <button class="btn" id="btn-procesar">Cargar Datos Masivos</button>
-
-                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
-                <h3>Cargar Base de Rodamiento</h3>
-                <p style="color: var(--muted); font-size: 0.9rem;">Suba un archivo (.xlsx o .csv) con las columnas: <strong>fecha, cedula, nombre, descripcion</strong>. Ejemplo: <strong>06/08/2026, 123456789, Carlos, Pago de Rodamiento</strong>.</p>
-                <div class="form-group">
-                    <input type="file" id="rodamiento-file" accept=".xlsx, .xls, .csv">
-                </div>
-                <button class="btn" id="btn-procesar-rodamiento">Cargar Datos de Rodamiento</button>
-
-                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
-                <h3>Cargar trabajo diario</h3>
-                <p class="admin-upload-note">Excel o CSV con las columnas: <strong>fecha, cedula, nombre, labor, cantidad</strong>. Cada fila queda relacionada con el trabajador mediante su cédula.</p>
-                <div class="form-group"><input type="file" id="trabajo-diario-file" accept=".xlsx, .xls, .csv"></div>
-                <button class="btn" id="btn-procesar-trabajo">Cargar Trabajo Diario</button>
-
-                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
-                <h3>Cargar préstamos</h3>
-                <p class="admin-upload-note">Excel o CSV con las columnas: <strong>fecha, cedula, nombre, concepto, monto, cuota, cuotasPagadas, totalCuotas</strong>. Los préstamos también se muestran únicamente al trabajador de esa cédula.</p>
-                <div class="form-group"><input type="file" id="prestamos-file" accept=".xlsx, .xls, .csv"></div>
-                <button class="btn" id="btn-procesar-prestamos">Cargar Préstamos</button>
-
-                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
-                <h3>Cargar volantes en PDF</h3>
-                <p style="color: var(--muted); font-size: 0.9rem;">Seleccione el mes y uno o varios PDF. Cada archivo debe corresponder a un empleado y tener la cédula en el nombre, por ejemplo: <strong>479511_Carlos.pdf</strong>.</p>
-                <div class="form-group">
-                    <label for="pdf-periodo">Mes del volante:</label>
-                    <input type="month" id="pdf-periodo">
-                </div>
-                <div class="form-group">
-                    <input type="file" id="pdf-files" accept="application/pdf,.pdf" multiple>
-                </div>
-                <button class="btn" id="btn-procesar-pdf">Cargar PDFs</button>
-                <button class="btn btn-secondary" id="btn-logout">Cerrar Sesión</button>
                 <div id="admin-alert" class="alert"></div>
 
-                <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
+                <section class="admin-upload-card admin-admin-actions">
                 <h3>Solicitudes de anticipos</h3>
                 <p style="color: var(--muted); font-size: 0.9rem;">Descargue todas las solicitudes registradas para revisarlas en Excel.</p>
                 <button class="btn" id="btn-exportar-anticipos">Descargar Anticipos en Excel</button>
@@ -789,9 +1019,10 @@
                         <tbody id="admin-anticipos-body"></tbody>
                     </table>
                 </div>
+                </section>
 
                 <!-- Tabla de Edición Manual de Registros -->
-                <div id="admin-records-section" class="admin-data-container" style="display: none;">
+                <div id="admin-records-section" class="admin-data-container admin-upload-card admin-records-card" style="display: none;">
                     <hr style="border: 0; border-top: 1px solid var(--line); margin: 24px 0;">
                     <h3>Edición Individual de Registros</h3>
                     <table>
@@ -828,8 +1059,8 @@
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { getFirestore, collection, getDocs, getDoc, query, where, writeBatch, doc, setDoc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getFirestore, collection, getDocs, getDoc, getCountFromServer, query, where, writeBatch, doc, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     const firebaseConfig = {
@@ -846,6 +1077,9 @@
     const employeeProvisioningApp = initializeApp(firebaseConfig, 'employeeProvisioning');
     const employeeProvisioningAuth = getAuth(employeeProvisioningApp);
     const db = getFirestore(app);
+    const visitorApp = initializeApp(firebaseConfig, 'siteVisitCounter');
+    const visitorAuth = getAuth(visitorApp);
+    const visitorDb = getFirestore(visitorApp);
     const supabaseConfig = window.__SUPABASE_CONFIG__ || {
         url: '',
         anonKey: ''
@@ -859,6 +1093,24 @@
     let nominaData = [];
     let pdfData = [];
     let welcomeTimer;
+
+    const registerSiteVisit = async () => {
+        try {
+            const credential = visitorAuth.currentUser
+                ? { user: visitorAuth.currentUser }
+                : await signInAnonymously(visitorAuth);
+            const date = new Date().toISOString().slice(0, 10);
+            const visitId = `${credential.user.uid}_${date}`;
+            await setDoc(doc(visitorDb, 'visitasWeb', visitId), {
+                fecha: date,
+                creadoEn: serverTimestamp()
+            });
+        } catch (error) {
+            if (error?.code !== 'permission-denied') console.warn('No se pudo registrar la visita anónima.', error?.code || 'error');
+        }
+    };
+
+    void registerSiteVisit();
 
     const switchTab = (activeTab) => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -891,14 +1143,44 @@
 
     const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
-    const setBulkProgress = (value, label) => {
+    const setUploadProgress = (progressId, value, label) => {
         const progress = Math.max(0, Math.min(100, Number(value) || 0));
-        const root = document.getElementById('employee-bulk-progress');
-        const fill = document.getElementById('employee-bulk-progress-fill');
-        const text = document.getElementById('employee-bulk-progress-text');
+        const root = document.getElementById(progressId);
+        const fill = root.querySelector('.upload-progress-fill');
+        const text = root.querySelector('.upload-progress-text');
+        const bar = root.querySelector('[role="progressbar"]');
         fill.style.width = `${progress}%`;
         text.textContent = label ? `${label} (${progress}%)` : `${progress}%`;
+        bar.setAttribute('aria-valuenow', String(progress));
         root.style.display = 'block';
+    };
+
+    const setBulkProgress = (value, label) => setUploadProgress('employee-bulk-progress', value, label);
+
+    const markUploadProgressError = progressId => {
+        const root = document.getElementById(progressId);
+        const progress = Number(root.querySelector('[role="progressbar"]').getAttribute('aria-valuenow')) || 0;
+        setUploadProgress(progressId, progress, 'Error');
+    };
+
+    const commitUploadOperations = async (operations, progressId, label) => {
+        if (!operations.length) {
+            setUploadProgress(progressId, 100, 'Finalizado');
+            return;
+        }
+
+        for (let start = 0; start < operations.length; start += 450) {
+            const batch = writeBatch(db);
+            const batchOperations = operations.slice(start, start + 450);
+            batchOperations.forEach(operation => {
+                if (operation.type === 'delete') batch.delete(operation.reference);
+                else batch.set(operation.reference, operation.data);
+            });
+            await batch.commit();
+            const committed = start + batchOperations.length;
+            const progress = 20 + Math.round((committed / operations.length) * 80);
+            setUploadProgress(progressId, progress, `${label}: ${committed}/${operations.length}`);
+        }
     };
 
     const normalizeText = value => String(value || '')
@@ -1645,8 +1927,10 @@
         const file = fileInput.files[0];
         const alertId = 'admin-alert';
 
+        if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador.', 'error');
         if (!file) return showAlert(alertId, 'Seleccione un archivo Excel o CSV.', 'error');
 
+        setUploadProgress('descuentos-progress', 5, 'Leyendo archivo');
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
@@ -1654,32 +1938,45 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
 
-                if (!json.length) return showAlert(alertId, 'El archivo no tiene contenido.', 'error');
+                if (!json.length) {
+                    setUploadProgress('descuentos-progress', 0, 'Archivo vacío');
+                    return showAlert(alertId, 'El archivo no tiene contenido.', 'error');
+                }
+
+                const records = json.filter(row => row.cedula && row.mes);
+                if (!records.length) {
+                    setUploadProgress('descuentos-progress', 0, 'Sin filas válidas');
+                    return showAlert(alertId, 'No se encontraron filas válidas con cédula y mes.', 'error');
+                }
 
                 const oldDocs = await getDocs(collection(db, 'descuentos'));
-                const batch = writeBatch(db);
-                
-                oldDocs.forEach(d => batch.delete(d.ref));
-                json.forEach(row => {
-                    if (row.cedula && row.mes) {
-                        const newRef = doc(collection(db, 'descuentos'));
-                        batch.set(newRef, {
+                const operations = oldDocs.docs.map(snapshotDoc => ({ type: 'delete', reference: snapshotDoc.ref }));
+                records.forEach(row => {
+                    operations.push({
+                        type: 'set',
+                        reference: doc(collection(db, 'descuentos')),
+                        data: {
                             cedula: String(row.cedula).trim(),
                             nombre: String(row.nombre || '').trim(),
                             mes: String(row.mes).trim(),
                             concepto: String(row.concepto || '').trim(),
                             monto: Number(row.monto) || 0
-                        });
-                    }
+                        }
+                    });
                 });
 
-                await batch.commit();
+                await commitUploadOperations(operations, 'descuentos-progress', 'Sincronizando');
                 showAlert(alertId, 'Base de datos cargada y sincronizada.', 'success');
                 fileInput.value = '';
                 loadAdminRecords();
             } catch (err) {
+                markUploadProgressError('descuentos-progress');
                 showAlert(alertId, 'Error al procesar el archivo o escribir en la base de datos.', 'error');
             }
+        };
+        reader.onerror = () => {
+            setUploadProgress('descuentos-progress', 0, 'Error al leer');
+            showAlert(alertId, 'No se pudo leer el archivo seleccionado.', 'error');
         };
         reader.readAsArrayBuffer(file);
     };
@@ -1692,6 +1989,7 @@
         if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador antes de cargar datos de rodamiento.', 'error');
         if (!file) return showAlert(alertId, 'Seleccione un archivo Excel o CSV de rodamiento.', 'error');
 
+        setUploadProgress('rodamiento-progress', 5, 'Leyendo archivo');
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
@@ -1699,7 +1997,11 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
 
-                if (!json.length) return showAlert(alertId, 'El archivo de rodamiento no tiene contenido.', 'error');
+                if (!json.length) {
+                    setUploadProgress('rodamiento-progress', 0, 'Archivo vacío');
+                    return showAlert(alertId, 'El archivo de rodamiento no tiene contenido.', 'error');
+                }
+                setUploadProgress('rodamiento-progress', 15, 'Validando filas');
 
                 const rows = json.filter(row => {
                     const normalized = getNormalizedRow(row);
@@ -1787,20 +2089,18 @@
                     });
                 });
 
-                for (let start = 0; start < operations.length; start += 450) {
-                    const batch = writeBatch(db);
-                    operations.slice(start, start + 450).forEach(operation => {
-                        if (operation.type === 'delete') batch.delete(operation.reference);
-                        else batch.set(operation.reference, operation.data);
-                    });
-                    await batch.commit();
-                }
+                await commitUploadOperations(operations, 'rodamiento-progress', 'Guardando');
 
                 showAlert(alertId, `Base de rodamiento cargada correctamente (${rows.length} registros).`, 'success');
                 fileInput.value = '';
             } catch (err) {
+                markUploadProgressError('rodamiento-progress');
                 showAlert(alertId, 'Error al procesar la base de rodamiento o escribir en Firestore.', 'error');
             }
+        };
+        reader.onerror = () => {
+            setUploadProgress('rodamiento-progress', 0, 'Error al leer');
+            showAlert(alertId, 'No se pudo leer el archivo de rodamiento.', 'error');
         };
         reader.readAsArrayBuffer(file);
     };
@@ -1809,11 +2109,14 @@
         const fileInput = document.getElementById(fileInputId);
         const file = fileInput.files[0];
         const alertId = 'admin-alert';
+        const progressId = tipo === 'trabajo' ? 'trabajo-progress' : 'prestamos-progress';
         if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador.', 'error');
         if (!file) return showAlert(alertId, 'Seleccione un archivo Excel o CSV.', 'error');
+        setUploadProgress(progressId, 5, 'Leyendo archivo');
         try {
             const workbook = XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array', cellDates: true });
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+            setUploadProgress(progressId, 15, 'Validando filas');
             const records = rows.map(row => {
                 const normalized = getNormalizedRow(row);
                 const base = {
@@ -1828,14 +2131,11 @@
             const oldDocs = await getDocs(collection(db, collectionName));
             const operations = oldDocs.docs.map(snapshotDoc => ({ type: 'delete', reference: snapshotDoc.ref }));
             records.forEach(record => operations.push({ type: 'set', reference: doc(collection(db, collectionName)), data: { ...record, cargadoEn: new Date().toISOString() } }));
-            for (let start = 0; start < operations.length; start += 450) {
-                const batch = writeBatch(db);
-                operations.slice(start, start + 450).forEach(operation => operation.type === 'delete' ? batch.delete(operation.reference) : batch.set(operation.reference, operation.data));
-                await batch.commit();
-            }
+            await commitUploadOperations(operations, progressId, 'Guardando');
             showAlert(alertId, `Base cargada correctamente (${records.length} registros).`, 'success');
             fileInput.value = '';
         } catch (error) {
+            markUploadProgressError(progressId);
             showAlert(alertId, 'No se pudo procesar el archivo. Verifique sus columnas y la conexión con Firestore.', 'error');
         }
     };
@@ -1934,14 +2234,18 @@
         if (!auth.currentUser) return showAlert(alertId, 'Debe iniciar sesión como administrador antes de cargar un PDF.', 'error');
         if (!supabase) return showAlert(alertId, 'Configure la URL y la clave pública de Supabase antes de cargar volantes.', 'error');
 
+        setUploadProgress('pdf-progress', 0, `Preparando ${files.length} archivo(s)`);
         try {
             let cargados = 0;
             let rechazados = [];
 
-            for (const file of files) {
+            for (let index = 0; index < files.length; index += 1) {
+                const file = files[index];
                 const cedula = extractCedulaFromFileName(file.name);
                 if (!cedula) {
                     rechazados.push(`${file.name} (sin cédula detectable)`);
+                    const progress = Math.round(((index + 1) / files.length) * 100);
+                    setUploadProgress('pdf-progress', progress, `Procesados ${index + 1}/${files.length}`);
                     continue;
                 }
 
@@ -1966,6 +2270,8 @@
                 } catch (error) {
                     rechazados.push(`${file.name} (${error.message || 'error de carga'})`);
                 }
+                const progress = Math.round(((index + 1) / files.length) * 100);
+                setUploadProgress('pdf-progress', progress, `Procesados ${index + 1}/${files.length}`);
             }
 
             if (!cargados) {
@@ -1977,6 +2283,7 @@
             showAlert(alertId, `${cargados} PDF(s) cargado(s) para ${periodo}.${detalleRechazo}`, 'success');
             fileInput.value = '';
         } catch (error) {
+            markUploadProgressError('pdf-progress');
             showAlert(alertId, error.message || 'No se pudo cargar el PDF en Supabase.', 'error');
         }
     };
@@ -2019,27 +2326,77 @@
         }
     };
 
+    const loadSiteVisitStats = async () => {
+        const alertId = 'site-visits-alert';
+        document.getElementById(alertId).style.display = 'none';
+        try {
+            const dates = Array.from({ length: 7 }, (_, offset) => {
+                const date = new Date();
+                date.setUTCHours(0, 0, 0, 0);
+                date.setUTCDate(date.getUTCDate() - offset);
+                return date.toISOString().slice(0, 10);
+            });
+            const [totalSnapshot, ...daySnapshots] = await Promise.all([
+                getCountFromServer(collection(db, 'visitasWeb')),
+                ...dates.map(date => getCountFromServer(query(
+                    collection(db, 'visitasWeb'),
+                    where('fecha', '==', date)
+                )))
+            ]);
+            const dailyCounts = daySnapshots.map(snapshot => snapshot.data().count);
+            document.getElementById('site-visits-total').textContent = totalSnapshot.data().count.toLocaleString('es-CO');
+            document.getElementById('site-visits-today').textContent = dailyCounts[0].toLocaleString('es-CO');
+            document.getElementById('site-visits-week').textContent = dailyCounts.reduce((sum, count) => sum + count, 0).toLocaleString('es-CO');
+
+            const dailyList = document.getElementById('site-visits-days');
+            dailyList.replaceChildren();
+            dates.forEach((date, index) => {
+                const item = document.createElement('div');
+                item.className = 'admin-visit-day';
+                const label = document.createElement('span');
+                label.textContent = new Date(`${date}T00:00:00Z`).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', timeZone: 'UTC' });
+                const value = document.createElement('strong');
+                value.textContent = dailyCounts[index].toLocaleString('es-CO');
+                item.append(label, value);
+                dailyList.appendChild(item);
+            });
+        } catch (error) {
+            showAlert(alertId, 'No se pudieron consultar las visitas. Verifique que las reglas de Firestore estén publicadas.', 'error');
+        }
+    };
+
     // --- Listeners de Eventos y Manejo de Sesión ---
     document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
     document.getElementById('btn-tab-anticipo').addEventListener('click', () => switchTab('anticipo'));
     document.getElementById('btn-tab-rodamiento').addEventListener('click', () => switchTab('rodamiento'));
     document.getElementById('btn-tab-documentos').addEventListener('click', () => switchTab('documentos'));
     const openPortal = () => {
+        document.body.classList.remove('admin-open');
         document.body.classList.add('portal-open');
         switchTab('admin');
     };
 
+    const openAdmin = () => {
+        document.body.classList.add('portal-open', 'admin-open');
+        switchTab('admin');
+    };
+
     const closePortal = () => {
-        document.body.classList.remove('portal-open');
+        document.body.classList.remove('portal-open', 'admin-open');
         switchTab('empleado');
     };
 
-    document.getElementById('btn-tab-admin').addEventListener('click', () => switchTab('admin'));
+    document.getElementById('btn-tab-admin').addEventListener('click', openAdmin);
+    document.getElementById('btn-portal-admin').addEventListener('click', event => {
+        event.preventDefault();
+        openAdmin();
+    });
     document.getElementById('btn-portal-empleados').addEventListener('click', event => {
         event.preventDefault();
         openPortal();
     });
     document.getElementById('btn-cerrar-portal').addEventListener('click', closePortal);
+    document.getElementById('btn-cerrar-admin').addEventListener('click', closePortal);
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
     document.getElementById('btn-consultar-rodamiento').addEventListener('click', consultarRodamiento);
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
@@ -2148,7 +2505,7 @@
                 const details = rejected.length ? ` ${rejected.slice(0, 4).join('. ')}${rejected.length > 4 ? '.' : ''}` : '';
                 showAlert(alertId, `Se crearon ${created} acceso(s). Rechazados: ${rejected.length}.${details}`, rejected.length ? 'error' : 'success');
             } catch (error) {
-                setBulkProgress(0, 'Error');
+                markUploadProgressError('employee-bulk-progress');
                 showAlert(alertId, 'No se pudo leer el archivo. Verifique que sea Excel o CSV.', 'error');
             }
         };
@@ -2179,6 +2536,7 @@
     });
 
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+    document.getElementById('btn-refresh-visits').addEventListener('click', loadSiteVisitStats);
     document.getElementById('btn-employee-logout').addEventListener('click', async () => {
         await signOut(auth);
         document.body.classList.remove('portal-authenticated');
@@ -2200,6 +2558,8 @@
     onAuthStateChanged(auth, user => {
         const isEmployee = Boolean(user?.email?.endsWith('@empleados.censer.local'));
         document.body.classList.toggle('portal-authenticated', isEmployee);
+        document.body.classList.toggle('admin-authenticated', Boolean(user && !isEmployee));
+        document.getElementById('admin-user-email').textContent = user && !isEmployee ? user.email : '';
         document.body.classList.remove('welcome-complete');
         clearTimeout(welcomeTimer);
         document.getElementById('admin-login-form').style.display = user && !isEmployee ? 'none' : 'block';
@@ -2246,6 +2606,7 @@
         if (user && !isEmployee) {
             loadAdminRecords();
             loadAdminAnticipos();
+            loadSiteVisitStats();
         }
     });
 </script>

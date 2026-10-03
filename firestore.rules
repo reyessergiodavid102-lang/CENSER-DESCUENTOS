@@ -2,6 +2,24 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSiteStatsAdmin() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && !request.auth.token.email.matches('.*@empleados[.]censer[.]local$');
+    }
+
+    match /visitasWeb/{visitId} {
+      allow create: if request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'anonymous'
+        && visitId.matches(request.auth.uid + '_[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && request.resource.data.keys().hasOnly(['fecha', 'creadoEn'])
+        && request.resource.data.fecha is string
+        && request.resource.data.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.creadoEn == request.time;
+      allow read: if isSiteStatsAdmin();
+      allow update, delete: if false;
+    }
+
     match /descuentos/{recordId} {
       // La consulta de empleados no tiene login en la interfaz actual.
       allow read: if true;
