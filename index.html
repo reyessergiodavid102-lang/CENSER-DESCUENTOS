@@ -155,6 +155,62 @@
         .employee-info strong { color: #163c35; font-size: .95rem; }
         .employee-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 22px 0 14px; }
         .employee-actions .btn { min-height: 46px; padding: 10px 8px; font-size: .82rem; }
+        body.portal-open.portal-authenticated .employee-topbar { min-height: 64px; }
+        body.portal-open.portal-authenticated .employee-brand { gap: 18px; }
+        body.portal-open.portal-authenticated .employee-brand img { width: 70px; }
+        body.portal-open.portal-authenticated .employee-nav,
+        body.portal-open.portal-authenticated .employee-user > span,
+        body.portal-open.portal-authenticated #employee-user-name { display: none; }
+        body.portal-open.portal-authenticated .employee-exit {
+            padding: 10px 14px;
+            color: #183a34;
+            background: #fff;
+            border: 1px solid #dce5df;
+            border-radius: 6px;
+            font: 700 .78rem Arial, sans-serif;
+            transform: none;
+        }
+        body.portal-open.portal-authenticated .employee-heading { padding: 42px 0 20px; }
+        body.portal-open.portal-authenticated .employee-heading h2 { max-width: 100%; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; }
+        body.portal-open.portal-authenticated .employee-heading h2 span { color: inherit; }
+        body.portal-open.portal-authenticated .employee-heading > .refresh-employee { display: none; }
+        body.portal-open.portal-authenticated .employee-info { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 8px 0 34px; }
+        body.portal-open.portal-authenticated .employee-info div { min-height: 78px; padding: 15px 17px; background: #fff; border-radius: 7px; }
+        body.portal-open.portal-authenticated .employee-info strong { display: block; overflow-wrap: anywhere; }
+        .employee-tools-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
+        .employee-tools-heading .employee-eyebrow { margin: 0 0 8px !important; }
+        .employee-tools-heading h3 { margin: 0; color: #173c35; font-size: 1.4rem; }
+        .employee-tools-heading > p { margin: 0; color: #84928b; font-size: .8rem; }
+        .employee-tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 22px; }
+        .employee-tool {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr) 16px;
+            min-height: 78px;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            color: #183a34;
+            text-align: left;
+            background: #fff;
+            border: 1px solid #dce7df;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        .employee-tool:hover { border-color: #87b99d; box-shadow: 0 7px 18px rgba(25, 57, 39, .08); transform: translateY(-1px); }
+        .employee-tool-number { display: grid; width: 32px; height: 32px; place-items: center; color: #34866e; background: #e8f4ec; border-radius: 50%; font-size: .7rem; font-weight: 700; }
+        .employee-tool-copy { min-width: 0; }
+        .employee-tool-copy strong { display: block; margin-bottom: 4px; font-size: .82rem; }
+        .employee-tool-copy small { display: block; color: #85928b; font-size: .69rem; line-height: 1.3; }
+        .employee-tool-arrow { color: #318c70; font-size: 1rem; }
+        .employee-security-note { display: flex; align-items: center; gap: 10px; margin: 0 0 20px; padding: 12px 15px; color: #72847b; background: #fff; border: 1px solid #dce7df; border-radius: 7px; font-size: .8rem; }
+        .employee-security-note::before { display: grid; width: 22px; height: 22px; flex: 0 0 auto; place-items: center; color: #368b70; background: #e8f4ec; border-radius: 50%; content: '✓'; font-weight: 700; }
+        .employee-extra-tools { margin: 0 0 18px; color: #65736b; font-size: .84rem; }
+        .employee-extra-tools summary { width: fit-content; cursor: pointer; font-weight: 700; }
+        .employee-extra-tools .employee-actions { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 12px 0; }
+        .employee-extra-tools .employee-actions .btn { width: auto; margin: 0; }
+        .employee-advance-form { max-width: 560px; padding: 18px; background: #fff; border: 1px solid #dce7df; border-radius: 8px; }
+        .employee-advance-form .btn { width: auto; min-width: 190px; }
         .employee-view { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
         .employee-view.active { display: block; animation: appear .25s ease-out; }
         .employee-view h3 { margin: 0 0 12px; color: #163c35; font-size: 1.1rem; }
@@ -185,7 +241,23 @@
         .finance-assistant-form button { align-self: flex-end; min-height: 42px; padding: 0 13px; color: #fff; background: #267348; border: 0; border-radius: 9px; font-weight: 700; cursor: pointer; }
         .finance-assistant-form button:disabled { opacity: .55; cursor: wait; }
         .finance-assistant-disclaimer { flex: 0 0 auto; margin: 0; padding: 0 12px 10px; color: #718078; background: #fff; font-size: .69rem; line-height: 1.4; }
-        @media (max-width: 600px) { .employee-actions, .loan-summary { grid-template-columns: 1fr; } }
+        @media (max-width: 800px) {
+            .employee-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 600px) {
+            .employee-actions, .loan-summary { grid-template-columns: 1fr; }
+            .employee-tools-heading { align-items: flex-start; flex-direction: column; }
+            .employee-tools-heading > p { display: none; }
+            .employee-tools { grid-template-columns: 1fr; }
+            body.portal-open.portal-authenticated #portal-session { padding: 18px 16px 88px; }
+            body.portal-open.portal-authenticated .employee-heading { padding: 34px 0 18px; }
+            body.portal-open.portal-authenticated .employee-info { grid-template-columns: 1fr; gap: 8px; margin-bottom: 28px; }
+            body.portal-open.portal-authenticated .employee-info div { min-height: auto; padding: 12px 14px; }
+            body.portal-open.portal-authenticated .employee-brand { gap: 10px; font-size: .8rem; }
+            body.portal-open.portal-authenticated .employee-brand img { width: 58px; }
+            body.portal-open.portal-authenticated .employee-user { gap: 0; }
+            .employee-extra-tools .employee-actions { grid-template-columns: 1fr; }
+        }
         @media (max-width: 600px) {
             .finance-assistant { bottom: 14px; left: 14px; }
             .finance-assistant-panel { position: fixed; right: 14px; bottom: 76px; left: 14px; width: auto; height: min(75dvh, 640px); }
@@ -201,6 +273,8 @@
         body.portal-open.portal-authenticated .workspace { display: block; min-height: 100vh; padding: 0; }
         body.portal-open.portal-authenticated #portal-session,
         body.portal-open.portal-authenticated #portal-welcome { width: 100%; max-width: none; min-height: 100vh; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+        body.portal-open.portal-authenticated #portal-welcome { display: none !important; }
+        body.portal-open.portal-authenticated #portal-session { display: block !important; }
         body.portal-open.portal-authenticated #portal-session { padding: clamp(32px, 6vw, 72px) clamp(24px, 8vw, 120px); background: linear-gradient(145deg, #ffffff 0%, #f7fbf8 100%); }
         body.portal-open.portal-authenticated #portal-session > * { max-width: 1180px; margin-right: auto; margin-left: auto; }
         body.portal-open.portal-authenticated #portal-session h2 { padding-top: 0; font-size: clamp(2rem, 4vw, 3.2rem); }
@@ -735,6 +809,33 @@
             body.portal-open .workspace { padding: 18px 10px 28px; }
             body.portal-open .login-card { padding: 22px 16px; }
         }
+        body.portal-open.portal-authenticated .employee-brand img { width: 66px; }
+        body.portal-open.portal-authenticated .employee-nav,
+        body.portal-open.portal-authenticated .employee-user > span,
+        body.portal-open.portal-authenticated #employee-user-name { display: none; }
+        body.portal-open.portal-authenticated .employee-exit {
+            padding: 10px 14px;
+            color: #183a34;
+            background: #fff;
+            border: 1px solid #dce5df;
+            border-radius: 6px;
+            font: 700 .78rem Arial, sans-serif;
+            transform: none;
+        }
+        body.portal-open.portal-authenticated .employee-heading { padding: 40px 0 22px; }
+        body.portal-open.portal-authenticated .employee-heading h2 span { color: inherit; }
+        body.portal-open.portal-authenticated .employee-heading > .refresh-employee { display: none; }
+        body.portal-open.portal-authenticated .employee-info { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 8px 0 34px; }
+        body.portal-open.portal-authenticated .employee-info div { min-width: 0; min-height: 78px; padding: 15px 17px; background: #fff; border-radius: 7px; }
+        body.portal-open.portal-authenticated .employee-info strong { display: block; overflow-wrap: anywhere; }
+        @media (max-width: 650px) {
+            body.portal-open.portal-authenticated #portal-session { padding: 18px 16px 88px; }
+            body.portal-open.portal-authenticated .employee-heading { padding: 34px 0 18px; }
+            body.portal-open.portal-authenticated .employee-info { grid-template-columns: 1fr; gap: 8px; margin-bottom: 28px; }
+            body.portal-open.portal-authenticated .employee-info div { min-height: auto; padding: 12px 14px; }
+            body.portal-open.portal-authenticated .employee-brand { font-size: .8rem; }
+            body.portal-open.portal-authenticated .employee-brand img { width: 58px; }
+        }
     </style>
 </head>
 <body>
@@ -776,7 +877,6 @@
     <div class="workspace">
         <div class="tabs">
             <button class="tab-btn active" id="btn-tab-empleado">Consulta Descuentos</button>
-            <button class="tab-btn" id="btn-tab-anticipo">Solicitar Anticipo</button>
             <button class="tab-btn" id="btn-tab-rodamiento">Rodamiento</button>
             <button class="tab-btn" id="btn-tab-documentos">Volantes y Tirillas</button>
             <button class="tab-btn" id="btn-tab-admin">Administrador</button>
@@ -829,24 +929,6 @@
                     <tbody id="tabla-descuentos"></tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- Solicitud de Anticipo -->
-        <div id="tab-anticipo" class="tab-content">
-            <div class="form-group">
-                <label for="anticipo-cedula">Número de Cédula:</label>
-                <input type="text" id="anticipo-cedula" placeholder="Ej: 123456789" inputmode="numeric" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label for="anticipo-fecha">Fecha del Anticipo:</label>
-                <input type="date" id="anticipo-fecha">
-            </div>
-            <div class="form-group">
-                <label for="anticipo-monto">Monto Solicitado:</label>
-                <input type="number" id="anticipo-monto" placeholder="Ej: 500000" min="1" step="1000" inputmode="numeric">
-            </div>
-            <button class="btn" id="btn-solicitar-anticipo">Enviar Solicitud</button>
-            <div id="anticipo-alert" class="alert"></div>
         </div>
 
         <!-- Rodamiento -->
@@ -917,20 +999,41 @@
 
             <div id="portal-session">
                 <div class="employee-topbar">
-                    <div class="employee-brand"><img src="logo.svg" alt="Censer JR S.A.S"><strong>Portal privado</strong></div>
+                    <div class="employee-brand"><img src="logo.svg" alt="Censer JR S.A.S"><strong>Portal de empleados</strong></div>
                     <nav class="employee-nav" aria-label="Navegación del portal"><span class="active">Resumen</span><span>Mi información</span></nav>
-                    <div class="employee-user"><span id="employee-user-initials">-</span><strong id="employee-user-name">Trabajador</strong><button class="employee-exit" type="button" id="btn-employee-logout-top" aria-label="Cerrar sesión">&#8594;</button></div>
+                    <div class="employee-user"><span id="employee-user-initials">-</span><strong id="employee-user-name">Trabajador</strong><button class="employee-exit" type="button" id="btn-employee-logout-top">Cerrar sesión</button></div>
                 </div>
                 <div class="employee-heading">
-                    <div><p class="employee-eyebrow">Mi espacio / Resumen</p><h2>Hola, <span id="employee-heading-name">trabajador</span>.</h2><p>Consulta tu información laboral y tus registros de trabajo.</p></div>
+                    <div><p class="employee-eyebrow">Mi espacio / Resumen</p><h2>¡Bienvenido a tu portal de empleados, <span id="employee-heading-name">trabajador</span>!</h2><p>Consulta tu información laboral y gestiona tus solicitudes desde un solo lugar.</p></div>
                     <button class="refresh-employee" type="button" id="btn-refresh-employee">&#8635; Actualizar datos</button>
                 </div>
                 <div class="employee-info">
-                    <div><span>Nombre</span><strong id="employee-info-name">-</strong></div>
                     <div><span>Cédula</span><strong id="employee-info-cedula">-</strong></div>
                     <div><span>Fecha de ingreso</span><strong id="employee-info-date">-</strong></div>
                     <div><span>Tipo de contrato</span><strong id="employee-info-contract">-</strong></div>
                 </div>
+                <div class="employee-tools-heading">
+                    <div><p class="employee-eyebrow">Tus herramientas</p><h3>¿Qué necesitas consultar?</h3></div>
+                    <p>Selecciona un servicio para continuar.</p>
+                </div>
+                <div class="employee-tools" aria-label="Servicios del portal de empleados">
+                    <button class="employee-tool" type="button" data-employee-resource="discounts">
+                        <span class="employee-tool-number">01</span><span class="employee-tool-copy"><strong>Descuentos</strong><small>Consulta tus descuentos registrados.</small></span><span class="employee-tool-arrow" aria-hidden="true">&#8594;</span>
+                    </button>
+                    <button class="employee-tool" type="button" data-employee-resource="commuting">
+                        <span class="employee-tool-number">02</span><span class="employee-tool-copy"><strong>Rodamiento</strong><small>Revisa rodamiento y asistencia.</small></span><span class="employee-tool-arrow" aria-hidden="true">&#8594;</span>
+                    </button>
+                    <button class="employee-tool" type="button" data-employee-resource="paystubs">
+                        <span class="employee-tool-number">03</span><span class="employee-tool-copy"><strong>Volantes y tirillas</strong><small>Accede a tus documentos laborales.</small></span><span class="employee-tool-arrow" aria-hidden="true">&#8594;</span>
+                    </button>
+                    <button class="employee-tool" type="button" data-employee-resource="loans">
+                        <span class="employee-tool-number">04</span><span class="employee-tool-copy"><strong>Préstamos</strong><small>Revisa pagos y saldos pendientes.</small></span><span class="employee-tool-arrow" aria-hidden="true">&#8594;</span>
+                    </button>
+                    <button class="employee-tool" type="button" data-employee-resource="advance">
+                        <span class="employee-tool-number">05</span><span class="employee-tool-copy"><strong>Solicitar anticipo</strong><small>Envía una solicitud de anticipo.</small></span><span class="employee-tool-arrow" aria-hidden="true">&#8594;</span>
+                    </button>
+                </div>
+                <p class="employee-security-note">Tu información se muestra de forma privada y segura.</p>
                 <div class="finance-assistant">
                     <section class="finance-assistant-panel" id="finance-assistant-panel" aria-label="Chat del robot financiero" aria-hidden="true">
                         <header class="finance-assistant-header">
@@ -949,11 +1052,28 @@
                         <span aria-hidden="true">🤖</span> Robot financiero
                     </button>
                 </div>
-                <button class="btn" id="btn-consultar-mi-informacion">Consultar mi información</button>
-                    <div class="employee-actions" aria-label="Opciones de información laboral">
+                    <details class="employee-extra-tools">
+                        <summary>Más servicios</summary>
+                        <div class="employee-actions" aria-label="Opciones adicionales de información laboral">
                         <button class="btn" type="button" data-employee-view="trabajo">Trabajo diario</button>
-                        <button class="btn" type="button" data-employee-view="prestamos">Mis préstamos</button>
                         <button class="btn" type="button" data-employee-view="certificado">Certificado</button>
+                        </div>
+                    </details>
+                    <div id="employee-view-anticipo" class="employee-view">
+                        <h3>Solicitar anticipo</h3>
+                        <p>Completa la fecha y el monto. La solicitud se enviará con la cédula de tu sesión.</p>
+                        <div class="employee-advance-form">
+                            <div class="form-group">
+                                <label for="anticipo-fecha">Fecha del anticipo</label>
+                                <input type="date" id="anticipo-fecha" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="anticipo-monto">Monto solicitado</label>
+                                <input type="number" id="anticipo-monto" placeholder="Ej: 500000" min="1" max="100000000" step="1000" inputmode="numeric" required>
+                            </div>
+                            <button class="btn" id="btn-solicitar-anticipo" type="button">Enviar solicitud</button>
+                            <div id="anticipo-alert" class="alert" aria-live="polite"></div>
+                        </div>
                     </div>
                     <div id="employee-view-trabajo" class="employee-view">
                         <h3>Mi trabajo día a día</h3>
@@ -973,7 +1093,6 @@
                         <button class="btn" type="button" id="btn-generar-certificado">Generar certificado</button>
                         <div id="certificado-alert" class="alert"></div>
                     </div>
-                <button class="btn btn-secondary" id="btn-employee-logout">Cerrar sesión</button>
             </div>
 
             <div id="portal-welcome">
@@ -1200,7 +1319,6 @@
     let rawData = [];
     let nominaData = [];
     let pdfData = [];
-    let welcomeTimer;
     let siteVisitErrorCode = '';
 
     const getSiteVisitErrorMessage = code => {
@@ -1237,9 +1355,6 @@
         if (activeTab === 'empleado') {
             document.getElementById('btn-tab-empleado').classList.add('active');
             document.getElementById('tab-empleado').classList.add('active');
-        } else if (activeTab === 'anticipo') {
-            document.getElementById('btn-tab-anticipo').classList.add('active');
-            document.getElementById('tab-anticipo').classList.add('active');
         } else if (activeTab === 'rodamiento') {
             document.getElementById('btn-tab-rodamiento').classList.add('active');
             document.getElementById('tab-rodamiento').classList.add('active');
@@ -1765,6 +1880,7 @@
     const showEmployeeView = async viewName => {
         document.querySelectorAll('.employee-view').forEach(view => view.classList.remove('active'));
         const view = document.getElementById(`employee-view-${viewName}`);
+        if (!view || !auth.currentUser?.email?.endsWith('@empleados.censer.local')) return;
         view.classList.add('active');
         const cedula = document.body.dataset.employeeCedula || '';
         if (viewName === 'trabajo') await loadTrabajoDiario(cedula);
@@ -1927,7 +2043,12 @@
     };
 
     const solicitarAnticipo = async () => {
-        const cedula = extractDigits(document.getElementById('anticipo-cedula').value);
+        const user = auth.currentUser;
+        const employeeSuffix = '@empleados.censer.local';
+        if (!user?.email?.endsWith(employeeSuffix) || !document.body.classList.contains('portal-open')) {
+            return showAlert('anticipo-alert', 'Inicia sesión desde el portal de empleados para solicitar un anticipo.', 'error');
+        }
+        const cedula = extractDigits(user.email.slice(0, -employeeSuffix.length));
         const fecha = document.getElementById('anticipo-fecha').value;
         const monto = Number(document.getElementById('anticipo-monto').value);
         const alertId = 'anticipo-alert';
@@ -1947,12 +2068,11 @@
                 solicitadoEn: new Date().toISOString()
             });
             showAlert(alertId, 'Solicitud enviada correctamente. Será revisada por administración.', 'success');
-            document.getElementById('anticipo-cedula').value = '';
             document.getElementById('anticipo-fecha').value = '';
             document.getElementById('anticipo-monto').value = '';
         } catch (error) {
             const reason = error?.code ? ` (${error.code})` : '';
-            showAlert(alertId, `No se pudo enviar la solicitud${reason}. Verifique que las reglas de Firebase estén publicadas.`, 'error');
+            showAlert(alertId, `No se pudo enviar la solicitud${reason}. Confirma que las reglas de Firebase estén publicadas.`, 'error');
         }
     };
 
@@ -2617,7 +2737,6 @@
 
     // --- Listeners de Eventos y Manejo de Sesión ---
     document.getElementById('btn-tab-empleado').addEventListener('click', () => switchTab('empleado'));
-    document.getElementById('btn-tab-anticipo').addEventListener('click', () => switchTab('anticipo'));
     document.getElementById('btn-tab-rodamiento').addEventListener('click', () => switchTab('rodamiento'));
     document.getElementById('btn-tab-documentos').addEventListener('click', () => switchTab('documentos'));
     const openPortal = () => {
@@ -2635,6 +2754,44 @@
         document.body.classList.remove('portal-open', 'admin-open');
         switchTab('empleado');
     };
+    const openEmployeeQuery = (tab, inputId, query) => {
+        const employeeSuffix = '@empleados.censer.local';
+        const email = auth.currentUser?.email || '';
+        if (!email.endsWith(employeeSuffix)) {
+            return showAlert('employee-login-alert', 'Inicia sesión en el portal de empleados para consultar esta información.', 'error');
+        }
+        const cedula = email.slice(0, -employeeSuffix.length);
+        document.getElementById(inputId).value = cedula;
+        closePortal();
+        switchTab(tab);
+        query();
+    };
+    document.querySelectorAll('[data-employee-resource]').forEach(button => {
+        button.addEventListener('click', () => {
+            switch (button.dataset.employeeResource) {
+                case 'discounts':
+                    openEmployeeQuery('empleado', 'cedula', consultarDescuentos);
+                    break;
+                case 'commuting':
+                    openEmployeeQuery('rodamiento', 'cedula-rodamiento', () => {
+                        document.getElementById('mes-rodamiento').value = new Date().toISOString().slice(0, 7);
+                        consultarRodamiento();
+                    });
+                    break;
+                case 'paystubs':
+                    openEmployeeQuery('documentos', 'cedula-documentos', consultarDocumentos);
+                    break;
+                case 'loans':
+                    void showEmployeeView('prestamos');
+                    break;
+                case 'advance':
+                    void showEmployeeView('anticipo');
+                    break;
+                default:
+                    break;
+            }
+        });
+    });
 
     document.getElementById('btn-tab-admin').addEventListener('click', openAdmin);
     document.getElementById('btn-portal-admin').addEventListener('click', event => {
@@ -2787,58 +2944,48 @@
 
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
     document.getElementById('btn-refresh-visits').addEventListener('click', loadSiteVisitStats);
-    document.getElementById('btn-employee-logout').addEventListener('click', async () => {
+    document.getElementById('btn-employee-logout-top').addEventListener('click', async () => {
         await signOut(auth);
         document.body.classList.remove('portal-authenticated');
         document.querySelectorAll('.employee-view').forEach(view => view.classList.remove('active'));
         resetFinancialAssistant();
     });
-    document.getElementById('btn-employee-logout-top').addEventListener('click', () => document.getElementById('btn-employee-logout').click());
     document.getElementById('btn-refresh-employee').addEventListener('click', () => {
         const cedula = document.body.dataset.employeeCedula || '';
         if (document.getElementById('employee-view-trabajo').classList.contains('active')) loadTrabajoDiario(cedula);
         if (document.getElementById('employee-view-prestamos').classList.contains('active')) loadPrestamos(cedula);
     });
-    document.getElementById('btn-consultar-mi-informacion').addEventListener('click', () => {
-        const cedula = document.body.dataset.employeeCedula || '';
-        document.getElementById('cedula').value = cedula;
-        closePortal();
-        consultarDescuentos();
-    });
-
     onAuthStateChanged(auth, user => {
         const isEmployee = Boolean(user?.email?.endsWith('@empleados.censer.local'));
         document.body.classList.toggle('portal-authenticated', isEmployee);
         document.body.classList.toggle('admin-authenticated', Boolean(user && !isEmployee));
         document.getElementById('admin-user-email').textContent = user && !isEmployee ? user.email : '';
         document.body.classList.remove('welcome-complete');
-        clearTimeout(welcomeTimer);
         document.getElementById('admin-login-form').style.display = user && !isEmployee ? 'none' : 'block';
         document.getElementById('admin-panel').style.display = user && !isEmployee ? 'block' : 'none';
         if (isEmployee) {
+            document.body.classList.add('welcome-complete');
             resetFinancialAssistant();
             const cedula = user.email.split('@')[0];
             const nombreCuenta = user.displayName || 'trabajador';
             document.body.dataset.employeeCedula = cedula;
             document.getElementById('portal-welcome-name').textContent = nombreCuenta;
-            document.getElementById('employee-info-name').textContent = nombreCuenta;
             document.getElementById('employee-info-cedula').textContent = cedula;
             document.getElementById('certificate-name').textContent = nombreCuenta;
             document.getElementById('certificate-cedula').textContent = cedula;
-            document.getElementById('employee-heading-name').textContent = nombreCuenta.split(' ')[0] || 'trabajador';
+            document.getElementById('employee-heading-name').textContent = nombreCuenta;
             document.getElementById('employee-user-name').textContent = nombreCuenta;
             document.getElementById('employee-user-initials').textContent = nombreCuenta.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
             getDoc(doc(db, 'empleados', cedula)).then(profileSnapshot => {
                 if (profileSnapshot.exists()) {
                     const profile = profileSnapshot.data();
                     document.getElementById('portal-welcome-name').textContent = profile.nombre || nombreCuenta;
-                    document.getElementById('employee-info-name').textContent = profile.nombre || nombreCuenta;
                     document.getElementById('employee-info-date').textContent = profile.fechaIngreso || 'No registrado';
                     document.getElementById('employee-info-contract').textContent = profile.tipoContrato || 'No registrado';
                     document.getElementById('certificate-name').textContent = profile.nombre || nombreCuenta;
                     document.getElementById('certificate-date').textContent = profile.fechaIngreso || 'No registrado';
                     document.getElementById('certificate-contract').textContent = profile.tipoContrato || 'No registrado';
-                    document.getElementById('employee-heading-name').textContent = (profile.nombre || nombreCuenta).split(' ')[0] || 'trabajador';
+                    document.getElementById('employee-heading-name').textContent = profile.nombre || nombreCuenta;
                     document.getElementById('employee-user-name').textContent = profile.nombre || nombreCuenta;
                     document.getElementById('employee-user-initials').textContent = (profile.nombre || nombreCuenta).split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
                 } else {
@@ -2853,7 +3000,6 @@
                 document.getElementById('certificate-date').textContent = 'No disponible';
                 document.getElementById('certificate-contract').textContent = 'No disponible';
             });
-            welcomeTimer = setTimeout(() => document.body.classList.add('welcome-complete'), 2200);
         }
         if (user && !isEmployee) {
             loadAdminRecords();

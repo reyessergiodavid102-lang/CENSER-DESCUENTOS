@@ -8,6 +8,12 @@ service cloud.firestore {
         && !request.auth.token.email.matches('.*@empleados[.]censer[.]local$');
     }
 
+    function isPortalEmployee() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && request.auth.token.email.matches('^[0-9]{6,12}@empleados[.]censer[.]local$');
+    }
+
     match /visitasWeb/{visitId} {
       allow create: if request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'anonymous'
@@ -53,7 +59,9 @@ service cloud.firestore {
     }
 
     match /anticipos/{recordId} {
-      allow create: if request.resource.data.keys().hasOnly([
+      allow create: if isPortalEmployee()
+      && request.auth.token.email == request.resource.data.cedula + '@empleados.censer.local'
+      && request.resource.data.keys().hasOnly([
         'cedula', 'fecha', 'monto', 'estado', 'solicitadoEn'
       ])
       && request.resource.data.cedula is string
@@ -66,7 +74,10 @@ service cloud.firestore {
       && request.resource.data.estado == 'pendiente'
       && request.resource.data.solicitadoEn is string
       && request.resource.data.solicitadoEn.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T');
-      allow read, update, delete: if request.auth != null;
+      allow read: if isSiteStatsAdmin()
+        || (isPortalEmployee()
+          && request.auth.token.email == resource.data.cedula + '@empleados.censer.local');
+      allow update, delete: if isSiteStatsAdmin();
     }
 
     match /empleados/{cedula} {

@@ -64,6 +64,7 @@ Desde el portal privado, el trabajador autenticado puede consultar:
 
 - Trabajo diario, desde la colección Firestore `trabajoDiario`. Cargue un Excel o CSV con las columnas `fecha, cedula, nombre, labor, cantidad`.
 - Préstamos y cuotas pendientes, desde la colección `prestamos`. Cargue `fecha, cedula, nombre, concepto, monto, cuota, cuotasPagadas, totalCuotas`.
+- Solicitudes de anticipo, únicamente desde el portal con sesión de trabajador. Firestore valida que la cédula del registro coincida con la cuenta autenticada; solo administración puede revisar o modificar las solicitudes.
 - Un certificado laboral sencillo generado en el navegador, con nombre, cédula, fecha de ingreso y tipo de contrato. El certificado no incluye sueldo.
 
 Los cargues se realizan desde el panel de administrador y reemplazan los registros anteriores de su respectiva colección.
