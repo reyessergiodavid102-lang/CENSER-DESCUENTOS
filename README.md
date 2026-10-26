@@ -81,6 +81,11 @@ estima y puede pedir al trabajador que comparta montos aproximados
 voluntariamente. Sus respuestas son orientación general y no reemplazan
 asesoría contable o financiera profesional.
 
+Para que el robot pueda separar correctamente los descuentos de un mismo mes
+en años distintos, incluye el año en la columna `mes` del archivo, por ejemplo
+`septiembre 2026` o `2026-09`. Los montos escritos como texto pueden usar
+separadores colombianos, como `$ 1.234.567,89`.
+
 Para activarlo:
 
 1. Crea una clave de Gemini en [Google AI Studio](https://aistudio.google.com/app/apikey).

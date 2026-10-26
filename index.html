@@ -171,12 +171,13 @@
         .finance-assistant-toggle:hover { background: #267348; }
         .finance-assistant-panel { position: absolute; bottom: 64px; left: 0; display: none; box-sizing: border-box; width: min(420px, calc(100vw - 32px)); height: min(620px, calc(100vh - 110px)); min-width: 0; flex-direction: column; overflow: hidden; background: #fff; border: 1px solid #dbe5dc; border-radius: 16px; box-shadow: 0 18px 50px rgba(25, 57, 39, .2); }
         .finance-assistant-panel.open { display: flex; }
-        .finance-assistant-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; color: #fff; background: #174d37; }
+        .finance-assistant-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px; color: #fff; background: #174d37; }
         .finance-assistant-header strong { display: block; font-size: .98rem; }
         .finance-assistant-header small { display: block; margin-top: 3px; color: #d9f1e5; font-size: .75rem; }
         .finance-assistant-close { padding: 4px 8px; color: #fff; background: transparent; border: 0; font-size: 1.4rem; cursor: pointer; }
+        .finance-assistant-reset { padding: 7px 10px; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.45); border-radius: 8px; font: inherit; font-size: .75rem; cursor: pointer; }
         .finance-assistant-messages { display: flex; min-width: 0; min-height: 0; flex: 1; flex-direction: column; gap: 10px; overflow-x: hidden; overflow-y: auto; padding: 14px; background: #f7faf7; }
-        .finance-assistant-message { box-sizing: border-box; width: fit-content; max-width: 88%; min-width: 0; flex: 0 1 auto; padding: 10px 12px; border-radius: 12px; font-size: .86rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+        .finance-assistant-message { box-sizing: border-box; width: fit-content; max-width: 88%; min-width: 0; flex: 0 0 auto; padding: 10px 12px; border-radius: 12px; font-size: .86rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
         .finance-assistant-message.model { align-self: flex-start; color: #263d32; background: #fff; border: 1px solid #e1e9e3; border-bottom-left-radius: 4px; }
         .finance-assistant-message.user { align-self: flex-end; color: #fff; background: #267348; border-bottom-right-radius: 4px; }
         .finance-assistant-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #e1e9e3; }
@@ -934,6 +935,7 @@
                     <section class="finance-assistant-panel" id="finance-assistant-panel" aria-label="Chat del robot financiero" aria-hidden="true">
                         <header class="finance-assistant-header">
                             <div><strong>Robot financiero</strong><small>Tu asistente para organizar tus finanzas</small></div>
+                            <button class="finance-assistant-reset" id="finance-assistant-reset" type="button">Nueva conversación</button>
                             <button class="finance-assistant-close" id="finance-assistant-close" type="button" aria-label="Cerrar chat">&times;</button>
                         </header>
                         <div class="finance-assistant-messages" id="finance-assistant-messages" role="log" aria-live="polite"></div>
@@ -1305,6 +1307,29 @@
         .toUpperCase()
         .replace(/[^A-Z0-9]+/g, ' ')
         .trim();
+
+    const parseMoney = value => {
+        if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+        const raw = String(value ?? '').trim();
+        const normalized = raw.replace(/[^\d,.-]/g, '');
+        if (!normalized) return raw ? null : 0;
+        const lastComma = normalized.lastIndexOf(',');
+        const lastDot = normalized.lastIndexOf('.');
+        let parsed = normalized;
+        if (lastComma >= 0 && lastDot >= 0) {
+            parsed = lastComma > lastDot
+                ? normalized.replace(/\./g, '').replace(',', '.')
+                : normalized.replace(/,/g, '');
+        } else if (lastComma >= 0) {
+            parsed = /,\d{3}$/.test(normalized)
+                ? normalized.replace(/,/g, '')
+                : normalized.replace(',', '.');
+        } else if (lastDot >= 0 && /\.\d{3}$/.test(normalized)) {
+            parsed = normalized.replace(/\./g, '');
+        }
+        const amount = Number(parsed);
+        return Number.isFinite(amount) ? amount : null;
+    };
 
     const cellText = value => {
         if (value instanceof Date) return value.toLocaleDateString('es-CO');
@@ -1811,6 +1836,15 @@
         document.getElementById('finance-assistant-input').value = '';
     };
 
+    const restartFinancialConversation = () => {
+        financialMessages.length = 0;
+        const messages = document.getElementById('finance-assistant-messages');
+        messages.replaceChildren();
+        renderFinancialMessage('model', '¡Conversación reiniciada! Empecemos de nuevo. ¿Qué información financiera quieres revisar?');
+        document.getElementById('finance-assistant-input').value = '';
+        setFinancialAssistantOpen(true);
+    };
+
     const setFinancialAssistantOpen = open => {
         const panel = document.getElementById('finance-assistant-panel');
         panel.classList.toggle('open', open);
@@ -1824,11 +1858,16 @@
         setFinancialAssistantOpen(!panel.classList.contains('open'));
     });
     document.getElementById('finance-assistant-close').addEventListener('click', () => setFinancialAssistantOpen(false));
+    document.getElementById('finance-assistant-reset').addEventListener('click', restartFinancialConversation);
     document.getElementById('finance-assistant-form').addEventListener('submit', async event => {
         event.preventDefault();
         const input = document.getElementById('finance-assistant-input');
         const text = input.value.trim();
         if (!text || !auth.currentUser || !auth.currentUser.email?.endsWith('@empleados.censer.local')) return;
+        if (/^(rein[ií]ci(?:a|ar|ate)|empezar de nuevo|nueva conversaci[oó]n)[.! ]*$/i.test(text)) {
+            restartFinancialConversation();
+            return;
+        }
 
         const sendButton = document.getElementById('finance-assistant-send');
         const history = financialMessages.slice(-6);
@@ -2139,15 +2178,24 @@
                     return showAlert(alertId, 'El archivo no tiene contenido.', 'error');
                 }
 
-                const records = json.filter(row => row.cedula && row.mes);
+                const records = json
+                    .map((row, index) => ({ row, rowNumber: index + 2 }))
+                    .filter(({ row }) => row.cedula && row.mes);
                 if (!records.length) {
                     setUploadProgress('descuentos-progress', 0, 'Sin filas válidas');
                     return showAlert(alertId, 'No se encontraron filas válidas con cédula y mes.', 'error');
                 }
+                const amounts = records.map(({ row }) => parseMoney(row.monto));
+                const invalidAmountIndex = amounts.findIndex(amount => amount === null);
+                if (invalidAmountIndex !== -1) {
+                    setUploadProgress('descuentos-progress', 0, 'Monto inválido');
+                    const rowNumber = records[invalidAmountIndex].rowNumber;
+                    return showAlert(alertId, `El monto de la fila ${rowNumber} no tiene un formato válido. No se modificaron los registros existentes.`, 'error');
+                }
 
                 const oldDocs = await getDocs(collection(db, 'descuentos'));
                 const operations = oldDocs.docs.map(snapshotDoc => ({ type: 'delete', reference: snapshotDoc.ref }));
-                records.forEach(row => {
+                records.forEach(({ row }, index) => {
                     operations.push({
                         type: 'set',
                         reference: doc(collection(db, 'descuentos')),
@@ -2156,7 +2204,7 @@
                             nombre: String(row.nombre || '').trim(),
                             mes: String(row.mes).trim(),
                             concepto: String(row.concepto || '').trim(),
-                            monto: Number(row.monto) || 0
+                            monto: amounts[index]
                         }
                     });
                 });
