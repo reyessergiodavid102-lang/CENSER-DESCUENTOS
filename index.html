@@ -165,7 +165,27 @@
         .loan-summary strong { display: block; margin-top: 5px; color: var(--green-dark); font-size: 1rem; }
         .certificate-card { padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
         .certificate-card p { margin: 6px 0; color: var(--muted); }
+        .finance-assistant { display: none; position: fixed; z-index: 20; bottom: 24px; left: 24px; }
+        body.portal-open.portal-authenticated.welcome-complete .finance-assistant { display: block; }
+        .finance-assistant-toggle { display: flex; min-height: 52px; align-items: center; gap: 10px; padding: 0 18px; color: #fff; background: #174d37; border: 0; border-radius: 999px; box-shadow: 0 8px 24px rgba(23, 77, 55, .25); font-weight: 700; cursor: pointer; }
+        .finance-assistant-toggle:hover { background: #267348; }
+        .finance-assistant-panel { position: absolute; bottom: 64px; left: 0; display: none; width: min(370px, calc(100vw - 32px)); height: min(520px, calc(100vh - 110px)); flex-direction: column; overflow: hidden; background: #fff; border: 1px solid #dbe5dc; border-radius: 16px; box-shadow: 0 18px 50px rgba(25, 57, 39, .2); }
+        .finance-assistant-panel.open { display: flex; }
+        .finance-assistant-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; color: #fff; background: #174d37; }
+        .finance-assistant-header strong { display: block; font-size: .98rem; }
+        .finance-assistant-header small { display: block; margin-top: 3px; color: #d9f1e5; font-size: .75rem; }
+        .finance-assistant-close { padding: 4px 8px; color: #fff; background: transparent; border: 0; font-size: 1.4rem; cursor: pointer; }
+        .finance-assistant-messages { display: flex; flex: 1; flex-direction: column; gap: 10px; overflow-y: auto; padding: 14px; background: #f7faf7; }
+        .finance-assistant-message { max-width: 88%; padding: 10px 12px; border-radius: 12px; font-size: .86rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .finance-assistant-message.model { align-self: flex-start; color: #263d32; background: #fff; border: 1px solid #e1e9e3; border-bottom-left-radius: 4px; }
+        .finance-assistant-message.user { align-self: flex-end; color: #fff; background: #267348; border-bottom-right-radius: 4px; }
+        .finance-assistant-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #e1e9e3; }
+        .finance-assistant-form textarea { flex: 1; min-width: 0; min-height: 42px; max-height: 100px; resize: vertical; padding: 10px; border: 1px solid #dbe5dc; border-radius: 9px; font: inherit; font-size: .85rem; }
+        .finance-assistant-form button { align-self: flex-end; min-height: 42px; padding: 0 13px; color: #fff; background: #267348; border: 0; border-radius: 9px; font-weight: 700; cursor: pointer; }
+        .finance-assistant-form button:disabled { opacity: .55; cursor: wait; }
+        .finance-assistant-disclaimer { margin: 0; padding: 0 12px 10px; color: #718078; background: #fff; font-size: .69rem; line-height: 1.4; }
         @media (max-width: 600px) { .employee-actions, .loan-summary { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .finance-assistant { bottom: 14px; left: 14px; } .finance-assistant-panel { bottom: 62px; } }
         @keyframes welcome-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         body.portal-open #admin-panel { width: 100%; max-height: calc(100vh - 96px); overflow: auto; margin: 0; }
 
@@ -905,6 +925,23 @@
                     <div><span>Fecha de ingreso</span><strong id="employee-info-date">-</strong></div>
                     <div><span>Tipo de contrato</span><strong id="employee-info-contract">-</strong></div>
                 </div>
+                <div class="finance-assistant">
+                    <section class="finance-assistant-panel" id="finance-assistant-panel" aria-label="Chat del robot financiero" aria-hidden="true">
+                        <header class="finance-assistant-header">
+                            <div><strong>Robot financiero</strong><small>Tu asistente para organizar tus finanzas</small></div>
+                            <button class="finance-assistant-close" id="finance-assistant-close" type="button" aria-label="Cerrar chat">&times;</button>
+                        </header>
+                        <div class="finance-assistant-messages" id="finance-assistant-messages" role="log" aria-live="polite"></div>
+                        <form class="finance-assistant-form" id="finance-assistant-form">
+                            <textarea id="finance-assistant-input" maxlength="1000" rows="2" placeholder="¿Cómo puedo organizar mis pagos?" aria-label="Escribe tu consulta financiera" required></textarea>
+                            <button type="submit" id="finance-assistant-send">Enviar</button>
+                        </form>
+                        <p class="finance-assistant-disclaimer">Se comparte con Gemini un resumen de tus préstamos, descuentos, volantes, rodamiento y actividad laboral, sin tu nombre ni cédula. Orientación general; no reemplaza asesoría contable profesional.</p>
+                    </section>
+                    <button class="finance-assistant-toggle" id="finance-assistant-toggle" type="button" aria-expanded="false" aria-controls="finance-assistant-panel">
+                        <span aria-hidden="true">🤖</span> Robot financiero
+                    </button>
+                </div>
                 <button class="btn" id="btn-consultar-mi-informacion">Consultar mi información</button>
                     <div class="employee-actions" aria-label="Opciones de información laboral">
                         <button class="btn" type="button" data-employee-view="trabajo">Trabajo diario</button>
@@ -1123,7 +1160,7 @@
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getAuth, getIdToken, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
     import { getFirestore, collection, getDocs, getDoc, getCountFromServer, query, where, writeBatch, doc, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -1747,6 +1784,86 @@
             showAlert(alertId, 'No se pudieron consultar tus préstamos.', 'error');
         }
     };
+
+    const financialMessages = [];
+    const renderFinancialMessage = (role, text) => {
+        const message = document.createElement('div');
+        message.className = `finance-assistant-message ${role}`;
+        message.textContent = text;
+        document.getElementById('finance-assistant-messages').append(message);
+        const messages = document.getElementById('finance-assistant-messages');
+        messages.scrollTop = messages.scrollHeight;
+    };
+
+    const resetFinancialAssistant = () => {
+        financialMessages.length = 0;
+        const messages = document.getElementById('finance-assistant-messages');
+        messages.replaceChildren();
+        renderFinancialMessage('model', '¡Hola! Soy tu robot financiero. Puedo ayudarte a organizar tus pagos y entender tus préstamos registrados. ¿Qué te gustaría revisar?');
+        document.getElementById('finance-assistant-panel').classList.remove('open');
+        document.getElementById('finance-assistant-panel').setAttribute('aria-hidden', 'true');
+        document.getElementById('finance-assistant-toggle').setAttribute('aria-expanded', 'false');
+        document.getElementById('finance-assistant-input').value = '';
+    };
+
+    const setFinancialAssistantOpen = open => {
+        const panel = document.getElementById('finance-assistant-panel');
+        panel.classList.toggle('open', open);
+        panel.setAttribute('aria-hidden', String(!open));
+        document.getElementById('finance-assistant-toggle').setAttribute('aria-expanded', String(open));
+        if (open) document.getElementById('finance-assistant-input').focus();
+    };
+
+    document.getElementById('finance-assistant-toggle').addEventListener('click', () => {
+        const panel = document.getElementById('finance-assistant-panel');
+        setFinancialAssistantOpen(!panel.classList.contains('open'));
+    });
+    document.getElementById('finance-assistant-close').addEventListener('click', () => setFinancialAssistantOpen(false));
+    document.getElementById('finance-assistant-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        const input = document.getElementById('finance-assistant-input');
+        const text = input.value.trim();
+        if (!text || !auth.currentUser || !auth.currentUser.email?.endsWith('@empleados.censer.local')) return;
+
+        const sendButton = document.getElementById('finance-assistant-send');
+        const history = financialMessages.slice(-10);
+        financialMessages.push({ role: 'user', text });
+        renderFinancialMessage('user', text);
+        input.value = '';
+        sendButton.disabled = true;
+        sendButton.textContent = '...';
+        try {
+            const token = await getIdToken(auth.currentUser);
+            const response = await fetch('/api/financialAssistant', {
+                method: 'POST',
+                headers: {
+                    'authorization': `Bearer ${token}`,
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({ message: text, history })
+            });
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.toLowerCase().includes('application/json')) {
+                throw new Error('Render devolvió una página HTML en vez del API del chat. El servicio debe desplegarse como Web Service Docker con la versión más reciente del repositorio.');
+            }
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Error HTTP ${response.status}`);
+            const reply = result.reply;
+            if (typeof reply !== 'string' || !reply.trim()) throw new Error('La respuesta del asistente está vacía.');
+            financialMessages.push({ role: 'model', text: reply });
+            renderFinancialMessage('model', reply);
+        } catch (error) {
+            console.error('No se pudo consultar el robot financiero:', error);
+            const message = error instanceof Error && error.message
+                ? error.message
+                : 'No pude responder en este momento. Inténtalo de nuevo más tarde.';
+            renderFinancialMessage('model', message);
+        } finally {
+            sendButton.disabled = false;
+            sendButton.textContent = 'Enviar';
+            input.focus();
+        }
+    });
 
     const generarCertificado = () => {
         const nombre = document.getElementById('certificate-name').textContent;
@@ -2616,6 +2733,7 @@
         await signOut(auth);
         document.body.classList.remove('portal-authenticated');
         document.querySelectorAll('.employee-view').forEach(view => view.classList.remove('active'));
+        resetFinancialAssistant();
     });
     document.getElementById('btn-employee-logout-top').addEventListener('click', () => document.getElementById('btn-employee-logout').click());
     document.getElementById('btn-refresh-employee').addEventListener('click', () => {
@@ -2640,6 +2758,7 @@
         document.getElementById('admin-login-form').style.display = user && !isEmployee ? 'none' : 'block';
         document.getElementById('admin-panel').style.display = user && !isEmployee ? 'block' : 'none';
         if (isEmployee) {
+            resetFinancialAssistant();
             const cedula = user.email.split('@')[0];
             const nombreCuenta = user.displayName || 'trabajador';
             document.body.dataset.employeeCedula = cedula;

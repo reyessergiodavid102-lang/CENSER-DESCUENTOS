@@ -67,3 +67,35 @@ Desde el portal privado, el trabajador autenticado puede consultar:
 - Un certificado laboral sencillo generado en el navegador, con nombre, cédula, fecha de ingreso y tipo de contrato. El certificado no incluye sueldo.
 
 Los cargues se realizan desde el panel de administrador y reemplazan los registros anteriores de su respectiva colección.
+
+## Robot financiero con Gemini
+
+El portal de empleados incluye un chat de orientación financiera. El servidor
+valida la sesión del trabajador y consulta sus préstamos, descuentos, volantes
+de pago, registros de rodamiento y trabajo en Firestore. Envía a Gemini solo
+un resumen agregado, sin nombre ni cédula. De los volantes usa totales
+disponibles y de rodamiento conteos y montos cargados, nunca documentos
+completos. Los registros de trabajo no contienen salarios; el asistente no los
+estima y puede pedir al trabajador que comparta montos aproximados
+voluntariamente. Sus respuestas son orientación general y no reemplazan
+asesoría contable o financiera profesional.
+
+Para activarlo:
+
+1. Crea una clave de Gemini en [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. En Google Cloud Console, abre el proyecto `censer-descuentos`, crea una
+   cuenta de servicio y asígnale el rol de solo lectura **Cloud Datastore Viewer**.
+   Genera una clave JSON para esa cuenta. Firebase Authentication valida los
+   tokens; esta cuenta solo permite que el servidor consulte Firestore.
+3. En Render, abre el servicio web `censer-descuentos`, entra en **Environment**
+   y agrega:
+   - `GEMINI_API_KEY`: la clave creada en Google AI Studio.
+   - `FIREBASE_SERVICE_ACCOUNT_JSON`: el contenido completo del archivo JSON de
+     la cuenta de servicio.
+4. Guarda las variables y despliega la versión más reciente del servicio Docker
+   (manual deploy en Render o push al repositorio si tienes despliegue automático).
+
+No pegues ninguna de esas claves en el HTML ni las subas al repositorio. Render
+puede suspender sus servicios gratuitos cuando no reciben tráfico; la primera
+consulta después de una pausa puede tardar. Google AI Studio también aplica sus
+propios límites de uso para Gemini.
