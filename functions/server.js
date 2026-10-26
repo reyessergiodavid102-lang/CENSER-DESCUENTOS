@@ -361,7 +361,7 @@ const createApp = ({ adminAuth, db, geminiKey, fetchImpl = fetch }) => async (re
   let geminiResponse;
   try {
     geminiResponse = await fetchImpl(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent',
       {
         method: 'POST',
         headers: {
@@ -384,8 +384,25 @@ const createApp = ({ adminAuth, db, geminiKey, fetchImpl = fetch }) => async (re
   }
 
   if (!geminiResponse.ok) {
-    console.error('Gemini financial assistant returned an error:', geminiResponse.status);
-    return jsonResponse(response, 503, { error: 'No se pudo generar una respuesta. Inténtalo más tarde.' });
+    let providerMessage = '';
+    try {
+      const errorResult = await geminiResponse.json();
+      providerMessage = String(errorResult.error?.message || '').slice(0, 300);
+    } catch (error) {
+      console.warn('Could not parse Gemini error response:', error?.name);
+    }
+    console.error('Gemini financial assistant returned an error:', {
+      status: geminiResponse.status,
+      message: providerMessage
+    });
+    const errorMessage = geminiResponse.status === 404
+      ? 'Gemini no encontró el modelo solicitado. Revisa que el servicio actualizado esté desplegado en Render.'
+      : geminiResponse.status === 403
+        ? 'Gemini rechazó la clave o no tiene habilitado el acceso a la API.'
+        : geminiResponse.status === 429
+          ? 'Se alcanzó el límite de consultas de Gemini. Inténtalo más tarde.'
+          : 'No se pudo generar una respuesta. Revisa los logs de Render e inténtalo más tarde.';
+    return jsonResponse(response, 503, { error: errorMessage });
   }
 
   let result;
