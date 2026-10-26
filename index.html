@@ -1816,6 +1816,11 @@
     };
 
     const financialMessages = [];
+    const cleanFinancialReply = text => String(text)
+        .replace(/^\s*\*\s+/gm, '• ')
+        .replace(/\*+/g, '')
+        .replace(/^[ \t]+/gm, '')
+        .trim();
     const renderFinancialMessage = (role, text) => {
         const message = document.createElement('div');
         message.className = `finance-assistant-message ${role}`;
@@ -1892,8 +1897,8 @@
             }
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || `Error HTTP ${response.status}`);
-            const reply = result.reply;
-            if (typeof reply !== 'string' || !reply.trim()) throw new Error('La respuesta del asistente está vacía.');
+            if (typeof result.reply !== 'string' || !result.reply.trim()) throw new Error('La respuesta del asistente está vacía.');
+            const reply = cleanFinancialReply(result.reply);
             financialMessages.push({ role: 'model', text: reply });
             renderFinancialMessage('model', reply);
         } catch (error) {
