@@ -72,14 +72,30 @@ Los cargues se realizan desde el panel de administrador y reemplazan los registr
 
 El portal de empleados incluye un chat de orientación financiera. El servidor
 valida la sesión del trabajador y consulta sus préstamos, descuentos, volantes
-de pago, registros de rodamiento y trabajo en Firestore. Envía a Gemini solo
-un resumen agregado, sin nombre ni cédula. De los volantes usa totales
-disponibles y de rodamiento conteos y montos cargados, nunca documentos
-completos. Incluye todos los periodos disponibles y permite respuestas largas
-en el chat. Los registros de trabajo no contienen salarios; el asistente no los
-estima y puede pedir al trabajador que comparta montos aproximados
-voluntariamente. Sus respuestas son orientación general y no reemplazan
-asesoría contable o financiera profesional.
+estructurados, registros de rodamiento y trabajo en Firestore. También busca
+los PDFs de volantes de ese trabajador en Supabase y los adjunta a la consulta
+de Gemini para que pueda leer conceptos y valores del documento. Los registros
+de rodamiento se comparten como conteos y montos cargados, no como documentos
+completos. Gemini recibe el contenido de los PDFs y podría procesar datos
+personales que aparezcan en ellos; el asistente tiene instrucciones de no
+repetir nombres, cédulas u otros identificadores en sus respuestas. Incluye los
+periodos disponibles y permite respuestas largas en el chat. Los registros de
+trabajo no contienen salarios; el asistente no los estima y puede pedir al
+trabajador que comparta montos aproximados voluntariamente. Sus respuestas son
+orientación general y no reemplazan asesoría contable o financiera profesional.
+
+Para que el robot lea los PDFs, agrega también en **Environment** del servicio
+Render:
+
+- `SUPABASE_URL`: la URL del proyecto Supabase.
+- `SUPABASE_ANON_KEY`: la clave pública `anon`/publishable del proyecto (la
+  misma que usa `window.__SUPABASE_CONFIG__` en `index.html`).
+
+No uses la clave `service_role`. El servidor consulta la tabla `volantes_pdf`
+filtrando por la cédula derivada de la sesión Firebase y descarga solo los
+archivos del trabajador. Si preguntas por un periodo concreto, solo adjunta
+los PDFs de ese mes/año; sin periodo explícito intenta incluir los disponibles.
+Después de agregar las variables, vuelve a desplegar el Web Service Docker.
 
 Para que el robot pueda separar correctamente los descuentos de un mismo mes
 en años distintos, incluye el año en la columna `mes` del archivo, por ejemplo
