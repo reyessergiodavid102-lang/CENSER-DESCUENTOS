@@ -75,7 +75,8 @@ valida la sesión del trabajador y consulta sus préstamos, descuentos, volantes
 de pago, registros de rodamiento y trabajo en Firestore. Envía a Gemini solo
 un resumen agregado, sin nombre ni cédula. De los volantes usa totales
 disponibles y de rodamiento conteos y montos cargados, nunca documentos
-completos. Los registros de trabajo no contienen salarios; el asistente no los
+completos. Incluye todos los periodos disponibles y permite respuestas largas
+en el chat. Los registros de trabajo no contienen salarios; el asistente no los
 estima y puede pedir al trabajador que comparta montos aproximados
 voluntariamente. Sus respuestas son orientación general y no reemplazan
 asesoría contable o financiera profesional.
