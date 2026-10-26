@@ -84,8 +84,10 @@ trabajo no contienen salarios; el asistente no los estima y puede pedir al
 trabajador que comparta montos aproximados voluntariamente. Sus respuestas son
 orientación general y no reemplazan asesoría contable o financiera profesional.
 
-Para que el robot lea los PDFs, agrega también en **Environment** del servicio
-Render:
+El Blueprint de Render declara `SUPABASE_URL` y `SUPABASE_ANON_KEY` con los
+mismos valores públicos que usa `window.__SUPABASE_CONFIG__` en `index.html`.
+Si el servicio ya existía cuando se agregó esa configuración, sincroniza el
+Blueprint en Render o agrega esos dos valores en **Environment** y despliega:
 
 - `SUPABASE_URL`: la URL del proyecto Supabase.
 - `SUPABASE_ANON_KEY`: la clave pública `anon`/publishable del proyecto (la
@@ -93,9 +95,10 @@ Render:
 
 No uses la clave `service_role`. El servidor consulta la tabla `volantes_pdf`
 filtrando por la cédula derivada de la sesión Firebase y descarga solo los
-archivos del trabajador. Si preguntas por un periodo concreto, solo adjunta
-los PDFs de ese mes/año; sin periodo explícito intenta incluir los disponibles.
-Después de agregar las variables, vuelve a desplegar el Web Service Docker.
+archivos del trabajador. Si preguntas por un periodo concreto, adjunta el PDF
+correspondiente; si no indicas periodo, usa el más reciente. Solo adjunta varios
+cuando se solicita explícitamente el historial. Después de sincronizar variables,
+vuelve a desplegar el Web Service Docker.
 
 Para que el robot pueda separar correctamente los descuentos de un mismo mes
 en años distintos, incluye el año en la columna `mes` del archivo, por ejemplo
