@@ -1062,6 +1062,7 @@
                     <div id="employee-view-anticipo" class="employee-view">
                         <h3>Solicitar anticipo</h3>
                         <p>Completa la fecha y el monto. La solicitud se enviará con la cédula de tu sesión.</p>
+                        <div id="anticipo-availability-alert" class="alert" aria-live="polite"></div>
                         <div class="employee-advance-form">
                             <div class="form-group">
                                 <label for="anticipo-fecha">Fecha del anticipo</label>
@@ -1229,13 +1230,16 @@
 
                 <section class="admin-upload-card admin-admin-actions">
                 <h3>Solicitudes de anticipos</h3>
-                <p style="color: var(--muted); font-size: 0.9rem;">Descargue todas las solicitudes registradas para revisarlas en Excel.</p>
+                <p style="color: var(--muted); font-size: 0.9rem;">Controle si los trabajadores pueden enviar solicitudes y revise quién las realizó.</p>
+                <p id="admin-anticipos-status" style="color: var(--muted); font-size: 0.9rem;" aria-live="polite"></p>
+                <button class="btn" id="btn-toggle-anticipos" type="button" disabled>Verificando solicitudes...</button>
                 <button class="btn" id="btn-exportar-anticipos">Descargar Anticipos en Excel</button>
                 <button class="btn btn-danger" id="btn-delete-all-anticipos">Borrar Todos los Anticipos</button>
                 <div id="admin-anticipos-section" class="admin-data-container" style="display: none;">
                     <table>
                         <thead>
                             <tr>
+                                <th>Nombre</th>
                                 <th>Cédula</th>
                                 <th>Fecha</th>
                                 <th>Monto</th>
@@ -1885,6 +1889,7 @@
         const cedula = document.body.dataset.employeeCedula || '';
         if (viewName === 'trabajo') await loadTrabajoDiario(cedula);
         if (viewName === 'prestamos') await loadPrestamos(cedula);
+        if (viewName === 'anticipo') await loadAdvanceAvailability();
     };
 
     const loadTrabajoDiario = async cedula => {
@@ -2042,6 +2047,85 @@
         ventana.document.close();
     };
 
+    const advanceSettingsRef = () => doc(db, 'configuracion', 'anticipos');
+
+    const getAdvanceRequestsEnabled = async () => {
+        const snapshot = await getDoc(advanceSettingsRef());
+        return !snapshot.exists() || snapshot.data().habilitado === true;
+    };
+
+    const loadAdvanceAvailability = async () => {
+        const button = document.getElementById('btn-solicitar-anticipo');
+        button.disabled = true;
+        try {
+            const enabled = await getAdvanceRequestsEnabled();
+            button.disabled = !enabled;
+            if (enabled) {
+                document.getElementById('anticipo-availability-alert').style.display = 'none';
+            } else {
+                showAlert('anticipo-availability-alert', 'La administración deshabilitó temporalmente las solicitudes de anticipos.', 'error');
+            }
+        } catch (error) {
+            showAlert('anticipo-availability-alert', 'No se pudo verificar si las solicitudes están habilitadas. Inténtalo de nuevo más tarde.', 'error');
+        }
+    };
+
+    const updateAdminAdvanceControl = enabled => {
+        const button = document.getElementById('btn-toggle-anticipos');
+        button.textContent = enabled ? 'Deshabilitar solicitudes' : 'Habilitar solicitudes';
+        button.setAttribute('aria-pressed', String(enabled));
+        document.getElementById('admin-anticipos-status').textContent = enabled
+            ? 'Las solicitudes de anticipos están habilitadas.'
+            : 'Las solicitudes de anticipos están deshabilitadas.';
+        button.disabled = false;
+    };
+
+    const loadAdminAdvanceControl = async () => {
+        const button = document.getElementById('btn-toggle-anticipos');
+        button.disabled = true;
+        try {
+            updateAdminAdvanceControl(await getAdvanceRequestsEnabled());
+        } catch (error) {
+            document.getElementById('admin-anticipos-status').textContent = 'No se pudo consultar la configuración de anticipos.';
+            showAlert('admin-alert', 'No se pudo consultar si las solicitudes de anticipos están habilitadas. Verifique las reglas de Firebase.', 'error');
+        }
+    };
+
+    const toggleAdvanceRequests = async () => {
+        const user = auth.currentUser;
+        const button = document.getElementById('btn-toggle-anticipos');
+        if (!user || user.email?.endsWith('@empleados.censer.local')) {
+            return showAlert('admin-alert', 'Debe iniciar sesión como administrador.', 'error');
+        }
+
+        button.disabled = true;
+        try {
+            const enabled = await getAdvanceRequestsEnabled();
+            const nextEnabled = !enabled;
+            await setDoc(advanceSettingsRef(), {
+                habilitado: nextEnabled,
+                actualizadoEn: serverTimestamp()
+            });
+            updateAdminAdvanceControl(nextEnabled);
+            showAlert('admin-alert', nextEnabled
+                ? 'Las solicitudes de anticipos quedaron habilitadas.'
+                : 'Las solicitudes de anticipos quedaron deshabilitadas.', 'success');
+        } catch (error) {
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert('admin-alert', `No se pudo cambiar la disponibilidad de las solicitudes${reason}. Verifique las reglas de Firebase.`, 'error');
+            button.disabled = false;
+        }
+    };
+
+    const getAdvanceApplicantNames = async advanceDocs => {
+        const cedulas = [...new Set(advanceDocs.map(advanceDoc => String(advanceDoc.data().cedula || '')).filter(Boolean))];
+        const profiles = await Promise.all(cedulas.map(async cedula => {
+            const profileSnapshot = await getDoc(doc(db, 'empleados', cedula));
+            return [cedula, profileSnapshot.exists() ? profileSnapshot.data().nombre || '' : ''];
+        }));
+        return new Map(profiles);
+    };
+
     const solicitarAnticipo = async () => {
         const user = auth.currentUser;
         const employeeSuffix = '@empleados.censer.local';
@@ -2060,6 +2144,10 @@
         if (monto > 100000000) return showAlert(alertId, 'El monto no puede superar $100.000.000.', 'error');
 
         try {
+            if (!await getAdvanceRequestsEnabled()) {
+                document.getElementById('btn-solicitar-anticipo').disabled = true;
+                return showAlert('anticipo-availability-alert', 'La administración deshabilitó temporalmente las solicitudes de anticipos.', 'error');
+            }
             await addDoc(collection(db, 'anticipos'), {
                 cedula,
                 fecha,
@@ -2082,6 +2170,7 @@
         try {
             const snapshot = await getDocs(collection(db, 'anticipos'));
             if (snapshot.empty) return showAlert('admin-alert', 'No hay solicitudes de anticipos para descargar.', 'error');
+            const applicantNames = await getAdvanceApplicantNames(snapshot.docs);
 
             const rows = snapshot.docs.map(snapshotDoc => {
                 const item = snapshotDoc.data();
@@ -2091,6 +2180,7 @@
                         ? new Date(item.solicitadoEn).toLocaleString('es-CO')
                         : '';
                 return {
+                    'Nombre del solicitante': applicantNames.get(String(item.cedula || '')) || 'No registrado',
                     'Número de Cédula': item.cedula || '',
                     'Fecha del Anticipo': item.fecha || '',
                     'Monto Solicitado': Number(item.monto || 0),
@@ -2101,6 +2191,7 @@
 
             const worksheet = XLSX.utils.json_to_sheet(rows);
             worksheet['!cols'] = [
+                { wch: 32 },
                 { wch: 20 },
                 { wch: 20 },
                 { wch: 20 },
@@ -2129,10 +2220,12 @@
                 return;
             }
 
+            const applicantNames = await getAdvanceApplicantNames(snapshot.docs);
             snapshot.docs.forEach(docSnap => {
                 const item = docSnap.data();
                 const tr = document.createElement('tr');
                 const cells = [
+                    applicantNames.get(String(item.cedula || '')) || 'No registrado',
                     item.cedula || '',
                     item.fecha || '',
                     `$${Number(item.monto || 0).toLocaleString('es-CO')}`,
@@ -2808,6 +2901,7 @@
     document.getElementById('btn-consultar-rodamiento').addEventListener('click', consultarRodamiento);
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
     document.getElementById('btn-solicitar-anticipo').addEventListener('click', solicitarAnticipo);
+    document.getElementById('btn-toggle-anticipos').addEventListener('click', toggleAdvanceRequests);
     document.querySelectorAll('[data-employee-view]').forEach(button => button.addEventListener('click', () => showEmployeeView(button.dataset.employeeView)));
     document.getElementById('btn-generar-certificado').addEventListener('click', generarCertificado);
     document.getElementById('btn-procesar-trabajo').addEventListener('click', () => procesarBaseEmpleado('trabajo-diario-file', 'trabajoDiario', 'trabajo'));
@@ -3004,6 +3098,7 @@
         if (user && !isEmployee) {
             loadAdminRecords();
             loadAdminAnticipos();
+            loadAdminAdvanceControl();
             loadSiteVisitStats();
         }
     });

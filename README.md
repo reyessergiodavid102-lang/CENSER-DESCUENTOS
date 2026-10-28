@@ -69,6 +69,15 @@ Desde el portal privado, el trabajador autenticado puede consultar:
 
 Los cargues se realizan desde el panel de administrador y reemplazan los registros anteriores de su respectiva colección.
 
+En **Administrador > Solicitudes de anticipos**, el botón permite habilitar o
+deshabilitar nuevas solicitudes. El estado se guarda en
+`configuracion/anticipos` y las reglas de Firestore también bloquean los envíos
+cuando está deshabilitado. Si ese documento aún no existe, las solicitudes
+continúan habilitadas para conservar el comportamiento anterior. En la tabla y
+en el Excel se muestra el nombre del trabajador desde su perfil en
+`empleados/{cedula}`; si no hay perfil o nombre registrado, se indica
+“No registrado”.
+
 ## Robot financiero con Gemini
 
 El portal de empleados incluye un chat de orientación financiera. El servidor
@@ -123,5 +132,5 @@ Para activarlo:
 
 No pegues ninguna de esas claves en el HTML ni las subas al repositorio. Render
 puede suspender sus servicios gratuitos cuando no reciben tráfico; la primera
-consulta después de una pausa puede tardar. Google AI Studio también aplica sus
-propios límites de uso para Gemini.
+consulta después de una pausa puede tardar. El servidor no limita la cantidad de respuestas del bot por
+trabajador; Google AI Studio sí aplica sus propios límites de uso para Gemini.

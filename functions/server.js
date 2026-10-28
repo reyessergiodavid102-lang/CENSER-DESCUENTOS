@@ -7,9 +7,6 @@ const path = require('node:path');
 
 const employeeEmailSuffix = '@empleados.censer.local';
 const maxBodyBytes = 64 * 1024;
-const requestWindowMs = 60 * 1000;
-const maxRequestsPerWindow = 12;
-const requestCounts = new Map();
 
 const normalizeCedula = value => String(value ?? '').replace(/\D/g, '');
 const normalizeLabel = value => String(value ?? '')
@@ -504,22 +501,6 @@ const createApp = ({
   const cedula = email.slice(0, -employeeEmailSuffix.length);
   if (!/^\d{6,12}$/.test(cedula)) {
     return jsonResponse(response, 403, { error: 'La cuenta del trabajador no tiene una cédula válida.' });
-  }
-
-  const now = Date.now();
-  const limit = requestCounts.get(decodedToken.uid);
-  if (limit && now - limit.startedAt < requestWindowMs && limit.count >= maxRequestsPerWindow) {
-    return jsonResponse(response, 429, { error: 'Alcanzaste el límite temporal de consultas. Inténtalo en un minuto.' });
-  }
-  if (!limit || now - limit.startedAt >= requestWindowMs) {
-    requestCounts.set(decodedToken.uid, { startedAt: now, count: 1 });
-  } else {
-    limit.count += 1;
-  }
-  if (requestCounts.size > 1000) {
-    for (const [uid, entry] of requestCounts) {
-      if (now - entry.startedAt >= requestWindowMs) requestCounts.delete(uid);
-    }
   }
 
   let body;

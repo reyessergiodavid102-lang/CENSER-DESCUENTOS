@@ -14,6 +14,21 @@ service cloud.firestore {
         && request.auth.token.email.matches('^[0-9]{6,12}@empleados[.]censer[.]local$');
     }
 
+    function areAdvanceRequestsEnabled() {
+      return !exists(/databases/$(database)/documents/configuracion/anticipos)
+        || get(/databases/$(database)/documents/configuracion/anticipos).data.habilitado == true;
+    }
+
+    match /configuracion/anticipos {
+      allow get: if isSiteStatsAdmin() || isPortalEmployee();
+      allow list: if false;
+      allow create, update: if isSiteStatsAdmin()
+        && request.resource.data.keys().hasOnly(['habilitado', 'actualizadoEn'])
+        && request.resource.data.habilitado is bool
+        && request.resource.data.actualizadoEn == request.time;
+      allow delete: if false;
+    }
+
     match /visitasWeb/{visitId} {
       allow create: if request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'anonymous'
@@ -59,7 +74,8 @@ service cloud.firestore {
     }
 
     match /anticipos/{recordId} {
-      allow create: if isPortalEmployee()
+      allow create: if areAdvanceRequestsEnabled()
+      && isPortalEmployee()
       && request.auth.token.email == request.resource.data.cedula + '@empleados.censer.local'
       && request.resource.data.keys().hasOnly([
         'cedula', 'fecha', 'monto', 'estado', 'solicitadoEn'
