@@ -276,6 +276,8 @@
         body.portal-open.portal-authenticated #portal-welcome { width: 100%; max-width: none; min-height: 100vh; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
         body.portal-open.portal-authenticated #portal-welcome { display: none !important; }
         body.portal-open.portal-authenticated #portal-session { display: block !important; }
+        body.portal-open.portal-authenticated.admin-open #portal-session,
+        body.portal-open.portal-authenticated.admin-open #portal-welcome { display: none !important; }
         body.portal-open.portal-authenticated #portal-session { padding: clamp(32px, 6vw, 72px) clamp(24px, 8vw, 120px); background: linear-gradient(145deg, #ffffff 0%, #f7fbf8 100%); }
         body.portal-open.portal-authenticated #portal-session > * { max-width: 1180px; margin-right: auto; margin-left: auto; }
         body.portal-open.portal-authenticated #portal-session h2 { padding-top: 0; font-size: clamp(2rem, 4vw, 3.2rem); }
@@ -406,6 +408,57 @@
         .whatsapp-float svg { width: 31px; height: 31px; fill: currentColor; }
         .whatsapp-label { position: absolute; right: 72px; white-space: nowrap; padding: 8px 11px; color: var(--green-dark); background: #fff; border: 1px solid #ccebd7; border-radius: 8px; font: 700 .78rem Arial, sans-serif; opacity: 0; pointer-events: none; transform: translateX(6px); transition: .2s ease; }
         .whatsapp-float:hover .whatsapp-label, .whatsapp-float:focus-visible .whatsapp-label { opacity: 1; transform: translateX(0); }
+        .site-guide-toggle {
+            position: fixed;
+            right: 98px;
+            bottom: 24px;
+            z-index: 10;
+            display: grid;
+            width: 62px;
+            height: 62px;
+            place-items: center;
+            color: #fff;
+            background: #174d37;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 10px 24px rgba(18, 95, 52, .2);
+            font: 700 1.45rem Arial, sans-serif;
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .site-guide-toggle:hover { transform: translateY(-4px) scale(1.04); box-shadow: 0 14px 28px rgba(18, 95, 52, .28); }
+        .site-guide-label { position: absolute; right: 72px; white-space: nowrap; padding: 8px 11px; color: var(--green-dark); background: #fff; border: 1px solid #ccebd7; border-radius: 8px; font: 700 .78rem Arial, sans-serif; opacity: 0; pointer-events: none; transform: translateX(6px); transition: .2s ease; }
+        .site-guide-toggle:hover .site-guide-label, .site-guide-toggle:focus-visible .site-guide-label { opacity: 1; transform: translateX(0); }
+        .site-guide-backdrop { position: fixed; z-index: 9998; inset: 0; display: none; background: rgba(15, 35, 27, .58); }
+        .site-guide-backdrop.open { display: block; }
+        body.site-guide-active .container { overflow: visible; }
+        body.site-guide-active .tab-content.active { animation: none; }
+        body.site-guide-active #admin-panel { animation: none !important; }
+        body.site-guide-active .finance-assistant { z-index: 9999 !important; }
+        .site-guide-highlight { position: relative !important; z-index: 9999 !important; outline: 4px solid #f4c84a !important; outline-offset: 5px !important; border-radius: 8px; pointer-events: none !important; }
+        .site-guide-card { position: fixed; z-index: 10001; width: min(420px, calc(100vw - 32px)); max-height: min(72vh, 520px); overflow: auto; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 24px 70px rgba(18, 45, 32, .3); }
+        .site-guide-card[data-placement="below"]::before, .site-guide-card[data-placement="above"]::after { position: absolute; left: var(--guide-arrow-left, 50%); width: 14px; height: 14px; content: ''; background: #174d37; transform: translateX(-50%) rotate(45deg); }
+        .site-guide-card[data-placement="below"]::before { top: -7px; }
+        .site-guide-card[data-placement="above"]::after { bottom: -7px; }
+        .site-guide-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 24px; color: #fff; background: #174d37; }
+        .site-guide-header h2 { margin: 0; font-size: 1.35rem; }
+        .site-guide-header p { margin: 6px 0 0; color: #d9f1e5; font-size: .88rem; line-height: 1.45; }
+        .site-guide-close { flex: 0 0 auto; padding: 2px 8px; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.55); border-radius: 8px; font-size: 1.35rem; cursor: pointer; }
+        .site-guide-content { min-height: 120px; padding: 24px; }
+        .site-guide-content section[hidden] { display: none; }
+        .site-guide-content h3 { margin: 0 0 10px; color: #174d37; font-size: 1.15rem; }
+        .site-guide-content p, .site-guide-content ol, .site-guide-content ul { margin: 0; color: #5e6f65; font-size: .88rem; line-height: 1.55; }
+        .site-guide-content ol, .site-guide-content ul { padding-left: 21px; }
+        .site-guide-content li + li { margin-top: 4px; }
+        .site-guide-progress { padding: 0 24px 14px; }
+        .site-guide-progress-label { display: block; margin-bottom: 8px; color: #68796f; font-size: .78rem; text-align: center; }
+        .site-guide-progress-track { height: 6px; overflow: hidden; background: #e8eee9; border-radius: 999px; }
+        .site-guide-progress-fill { width: 0; height: 100%; background: #3a9a70; border-radius: inherit; transition: width .2s ease; }
+        .site-guide-actions { display: flex; justify-content: space-between; gap: 12px; padding: 0 24px 22px; }
+        .site-guide-actions button { min-width: 120px; min-height: 42px; padding: 9px 16px; color: #174d37; background: #fff; border: 1px solid #cbdad0; border-radius: 8px; font: 700 .88rem Arial, sans-serif; cursor: pointer; }
+        .site-guide-actions button:hover:not(:disabled) { background: #f0f7f2; }
+        .site-guide-actions button:disabled { opacity: .45; cursor: not-allowed; }
+        .site-guide-actions #btn-guide-next { color: #fff; background: #267348; border-color: #267348; }
 
         .workspace { padding: 28px clamp(18px, 4vw, 48px) 40px; }
 
@@ -593,6 +646,7 @@
             .portal-link { top: 14px; right: 14px; }
             .portal-link.admin-link { right: auto; left: 14px; }
             .whatsapp-float { right: 16px; bottom: 16px; }
+            .site-guide-toggle { right: 76px; bottom: 16px; }
             .workspace { padding: 18px 12px; }
             table { display: block; overflow-x: auto; white-space: nowrap; }
 
@@ -784,6 +838,11 @@
             .admin-data-container table { min-width: 640px; }
             .whatsapp-float { width: 52px; height: 52px; border-width: 3px; }
             .whatsapp-float svg { width: 25px; height: 25px; }
+            .site-guide-toggle { width: 52px; height: 52px; border-width: 3px; }
+            .site-guide-content { min-height: 100px; padding: 18px; }
+            .site-guide-header { padding: 18px; }
+            .site-guide-progress { padding-right: 18px; padding-left: 18px; }
+            .site-guide-actions { padding-right: 18px; padding-left: 18px; }
             body.portal-open .header { min-height: 66vh; padding: 24px 18px 28px; }
             body.portal-open .header img { width: min(190px, 72%); }
             body.portal-open .workspace { padding: 22px 14px 32px; }
@@ -1281,6 +1340,53 @@
     <span class="whatsapp-label">Escríbenos por WhatsApp</span>
     <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.2A12.7 12.7 0 0 0 5.1 22.4L3.5 28.5l6.3-1.6A12.8 12.8 0 1 0 16 3.2Zm0 23.3a10.4 10.4 0 0 1-5.3-1.5l-.4-.2-3.7.9 1-3.6-.3-.4A10.4 10.4 0 1 1 16 26.5Zm5.7-7.7c-.3-.2-1.8-.9-2.1-1s-.5-.2-.7.2-.8 1-.9 1.2-.3.3-.6.1a8.6 8.6 0 0 1-2.5-1.5 9.4 9.4 0 0 1-1.7-2.1c-.2-.4 0-.5.2-.7l.5-.6.2-.4c.1-.2 0-.4 0-.6l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.2-1.2 2.9 1.2 3.3 1.4 3.5a12.2 12.2 0 0 0 4.7 4.2c.7.3 1.2.5 1.6.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.1-1.4-.1-.2-.3-.3-.6-.4Z"/></svg>
 </a>
+<button class="site-guide-toggle" id="btn-site-guide" type="button" aria-label="Abrir instructivo del sitio" aria-haspopup="dialog">
+    <span aria-hidden="true">?</span>
+    <span class="site-guide-label">Cómo funciona el sitio</span>
+</button>
+    <div class="site-guide-backdrop" id="site-guide-backdrop">
+        <section class="site-guide-card" id="site-guide-card" role="dialog" aria-modal="true" aria-labelledby="site-guide-title">
+            <div class="site-guide-header">
+                <div>
+                    <h2 id="site-guide-title">Instructivo del sitio</h2>
+                    <p>Guía paso a paso. El marco amarillo señala lo que se explica.</p>
+                </div>
+                <button class="site-guide-close" id="btn-close-site-guide" type="button" aria-label="Cerrar instructivo">&times;</button>
+            </div>
+            <div class="site-guide-content" aria-live="polite">
+                <section data-guide-step data-guide-target="#btn-consultar, #employee-tools-heading">
+                    <h3 tabindex="-1">Consultas</h3>
+                    <p>En la pantalla principal, escribe la cédula y pulsa <strong>Consultar Registros</strong>. Usa las pestañas para cambiar entre descuentos, rodamiento y volantes.</p>
+                </section>
+                <section data-guide-step hidden data-guide-target="#btn-portal-empleados, .employee-topbar">
+                    <h3 tabindex="-1">Portal de empleados</h3>
+                    <p>Este botón abre el acceso privado. Inicia sesión con tu cédula y contraseña; dentro encontrarás tus servicios y solicitudes.</p>
+                </section>
+                <section data-guide-step hidden data-guide-target="#finance-assistant-toggle, #btn-portal-empleados, .employee-tools">
+                    <h3 tabindex="-1">Robot financiero</h3>
+                    <p>Para usar el robot, primero entra al portal de empleados. Una vez dentro, abre el botón flotante del robot y pregunta sobre tus registros. Sus respuestas son orientación financiera general.</p>
+                </section>
+                <section data-guide-step hidden data-guide-target="#btn-portal-admin, #admin-login-form, .admin-dashboard-topbar, #btn-employee-logout-top">
+                    <h3 tabindex="-1">Administrador</h3>
+                    <p>El acceso administrativo es para personal autorizado. Desde allí se gestionan trabajadores, datos cargados y solicitudes de anticipos. Si estás en el portal de empleados, cierra esa sesión para volver a la pantalla de acceso.</p>
+                </section>
+                <section data-guide-step hidden data-guide-target=".whatsapp-float">
+                    <h3 tabindex="-1">Ayuda y soporte</h3>
+                    <p>Este botón abre WhatsApp para contactar al equipo de soporte. El instructivo se puede volver a abrir desde el botón <strong>?</strong>.</p>
+                </section>
+            </div>
+            <div class="site-guide-progress">
+                <span class="site-guide-progress-label" id="site-guide-step-label" aria-live="polite"></span>
+                <div class="site-guide-progress-track" role="progressbar" id="site-guide-progress" aria-label="Progreso del instructivo" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1">
+                    <div class="site-guide-progress-fill" id="site-guide-progress-fill"></div>
+                </div>
+            </div>
+            <div class="site-guide-actions">
+                <button id="btn-guide-previous" type="button" disabled>Anterior</button>
+                <button id="btn-guide-next" type="button">Siguiente</button>
+            </div>
+        </section>
+    </div>
 
 <script>
     window.__SUPABASE_CONFIG__ = {
@@ -2836,10 +2942,12 @@
     const openPortal = () => {
         document.body.classList.remove('admin-open');
         document.body.classList.add('portal-open');
+        document.body.classList.toggle('portal-authenticated', Boolean(auth.currentUser?.email?.endsWith('@empleados.censer.local')));
         switchTab('admin');
     };
 
     const openAdmin = () => {
+        document.body.classList.remove('portal-authenticated');
         document.body.classList.add('portal-open', 'admin-open');
         switchTab('admin');
     };
@@ -2898,6 +3006,123 @@
     });
     document.getElementById('btn-cerrar-portal').addEventListener('click', closePortal);
     document.getElementById('btn-cerrar-admin').addEventListener('click', closePortal);
+    const siteGuideBackdrop = document.getElementById('site-guide-backdrop');
+    const siteGuideCard = document.getElementById('site-guide-card');
+    const siteGuideSteps = [...siteGuideCard.querySelectorAll('[data-guide-step]')];
+    let activeSiteGuideStep = 0;
+    let highlightedGuideTarget = null;
+    let guideReturnFocus = null;
+    const findVisibleGuideTarget = selectors => selectors
+        .split(',')
+        .map(selector => document.querySelector(selector.trim()))
+        .find(element => {
+            if (!element) return false;
+            const style = getComputedStyle(element);
+            const bounds = element.getBoundingClientRect();
+            return style.display !== 'none'
+                && style.visibility !== 'hidden'
+                && bounds.width > 0
+                && bounds.height > 0;
+        });
+    const positionSiteGuide = () => {
+        if (!highlightedGuideTarget || !siteGuideBackdrop.classList.contains('open')) return;
+        const target = highlightedGuideTarget.getBoundingClientRect();
+        const card = siteGuideCard.getBoundingClientRect();
+        const margin = 16;
+        const gap = 18;
+        const left = Math.max(margin, Math.min(
+            target.left + target.width / 2 - card.width / 2,
+            window.innerWidth - card.width - margin
+        ));
+        const belowTop = target.bottom + gap;
+        const aboveTop = target.top - card.height - gap;
+        const placement = belowTop + card.height <= window.innerHeight - margin
+            ? 'below'
+            : aboveTop >= margin
+                ? 'above'
+                : 'below';
+        const top = placement === 'below'
+            ? Math.max(margin, Math.min(belowTop, window.innerHeight - card.height - margin))
+            : Math.max(margin, aboveTop);
+        const arrowLeft = Math.max(20, Math.min(target.left + target.width / 2 - left, card.width - 20));
+        siteGuideCard.dataset.placement = placement;
+        siteGuideCard.style.left = `${left}px`;
+        siteGuideCard.style.top = `${top}px`;
+        siteGuideCard.style.setProperty('--guide-arrow-left', `${arrowLeft}px`);
+    };
+    const closeSiteGuide = () => {
+        siteGuideBackdrop.classList.remove('open');
+        document.body.classList.remove('site-guide-active');
+        if (highlightedGuideTarget) highlightedGuideTarget.classList.remove('site-guide-highlight');
+        highlightedGuideTarget = null;
+        if (guideReturnFocus?.isConnected) guideReturnFocus.focus();
+    };
+    const updateSiteGuideStep = focusHeading => {
+        siteGuideSteps.forEach((step, index) => {
+            step.hidden = index !== activeSiteGuideStep;
+        });
+        if (highlightedGuideTarget) highlightedGuideTarget.classList.remove('site-guide-highlight');
+        highlightedGuideTarget = findVisibleGuideTarget(siteGuideSteps[activeSiteGuideStep].dataset.guideTarget)
+            || document.getElementById('btn-site-guide');
+        if (highlightedGuideTarget) {
+            highlightedGuideTarget.classList.add('site-guide-highlight');
+            highlightedGuideTarget.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+        }
+        const stepNumber = activeSiteGuideStep + 1;
+        document.getElementById('site-guide-step-label').textContent = `Paso ${stepNumber} de ${siteGuideSteps.length}`;
+        const progress = document.getElementById('site-guide-progress');
+        progress.setAttribute('aria-valuemax', String(siteGuideSteps.length));
+        progress.setAttribute('aria-valuenow', String(stepNumber));
+        document.getElementById('site-guide-progress-fill').style.width = `${(stepNumber / siteGuideSteps.length) * 100}%`;
+        document.getElementById('btn-guide-previous').disabled = activeSiteGuideStep === 0;
+        document.getElementById('btn-guide-next').textContent = stepNumber === siteGuideSteps.length ? 'Finalizar' : 'Siguiente';
+        if (focusHeading) siteGuideSteps[activeSiteGuideStep].querySelector('h3').focus();
+        requestAnimationFrame(positionSiteGuide);
+    };
+    document.getElementById('btn-site-guide').addEventListener('click', () => {
+        activeSiteGuideStep = 0;
+        guideReturnFocus = document.activeElement;
+        siteGuideBackdrop.classList.add('open');
+        document.body.classList.add('site-guide-active');
+        updateSiteGuideStep(false);
+        siteGuideSteps[activeSiteGuideStep].querySelector('h3').focus();
+    });
+    document.getElementById('btn-close-site-guide').addEventListener('click', closeSiteGuide);
+    siteGuideBackdrop.addEventListener('click', event => {
+        if (event.target === siteGuideBackdrop) closeSiteGuide();
+    });
+    siteGuideCard.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            closeSiteGuide();
+            return;
+        }
+        if (event.key !== 'Tab') return;
+        const controls = [...siteGuideCard.querySelectorAll('button:not(:disabled)')];
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
+    window.addEventListener('resize', positionSiteGuide);
+    window.addEventListener('scroll', positionSiteGuide, true);
+    document.getElementById('btn-guide-previous').addEventListener('click', () => {
+        if (activeSiteGuideStep === 0) return;
+        activeSiteGuideStep -= 1;
+        updateSiteGuideStep(true);
+    });
+    document.getElementById('btn-guide-next').addEventListener('click', () => {
+        if (activeSiteGuideStep === siteGuideSteps.length - 1) {
+            closeSiteGuide();
+            return;
+        }
+        activeSiteGuideStep += 1;
+        updateSiteGuideStep(true);
+    });
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
     document.getElementById('btn-consultar-rodamiento').addEventListener('click', consultarRodamiento);
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
