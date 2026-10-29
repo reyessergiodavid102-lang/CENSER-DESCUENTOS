@@ -78,6 +78,22 @@ en el Excel se muestra el nombre del trabajador desde su perfil en
 `empleados/{cedula}`; si no hay perfil o nombre registrado, se indica
 “No registrado”.
 
+Desde esa tabla, administración puede aprobar o rechazar solicitudes, ajustar
+el monto final y filtrar por estado, nombre o cédula. La descarga de Excel
+incluye el monto solicitado, el monto final y el estado de cada solicitud.
+En el portal de empleados, la sección de anticipos muestra el historial propio
+con el estado y los montos solicitados y finales.
+En la pantalla principal hay un acceso al formulario PQRS, disponible para
+trabajadores autenticados. Las solicitudes se guardan en la colección Firestore
+`pqrs`; cada trabajador solo puede crear y consultar las propias, mientras
+administración puede exportarlas a Excel desde el panel. Publica también
+`firestore.rules` para aplicar estos permisos. El guardado no depende del
+servicio de correo. Para enviar adicionalmente una notificación mediante
+Resend, configura `RESEND_API_KEY`, `PQRS_FROM_EMAIL` y
+`FIREBASE_SERVICE_ACCOUNT_JSON` en Render. El remitente debe ser un dominio
+verificado; `PQRS_TO_EMAIL` está configurado como `fredy65991@hotmail.com`.
+El servidor limita cada cuenta a tres notificaciones por hora.
+
 ## Robot financiero con Gemini
 
 El portal de empleados incluye un chat de orientación financiera. El servidor

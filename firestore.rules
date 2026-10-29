@@ -96,6 +96,31 @@ service cloud.firestore {
       allow update, delete: if isSiteStatsAdmin();
     }
 
+    match /pqrs/{requestId} {
+      allow create: if isPortalEmployee()
+        && request.resource.data.keys().hasOnly([
+          'cedula', 'tipo', 'asunto', 'detalle', 'estado', 'creadoEn'
+        ])
+        && request.resource.data.keys().hasAll([
+          'cedula', 'tipo', 'asunto', 'detalle', 'estado', 'creadoEn'
+        ])
+        && request.resource.data.cedula is string
+        && request.auth.token.email == request.resource.data.cedula + '@empleados.censer.local'
+        && request.resource.data.tipo in ['Petición', 'Queja', 'Reclamo', 'Sugerencia']
+        && request.resource.data.asunto is string
+        && request.resource.data.asunto.size() >= 3
+        && request.resource.data.asunto.size() <= 120
+        && request.resource.data.detalle is string
+        && request.resource.data.detalle.size() >= 10
+        && request.resource.data.detalle.size() <= 5000
+        && request.resource.data.estado == 'recibida'
+        && request.resource.data.creadoEn == request.time;
+      allow read: if isSiteStatsAdmin()
+        || (isPortalEmployee()
+          && request.auth.token.email == resource.data.cedula + '@empleados.censer.local');
+      allow update, delete: if false;
+    }
+
     match /empleados/{cedula} {
       allow read, create, update: if request.auth != null;
       allow delete: if request.auth != null;

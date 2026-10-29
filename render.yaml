@@ -11,4 +11,10 @@ services:
         value: https://raduchpwfnupjgeylial.supabase.co
       - key: SUPABASE_ANON_KEY
         value: sb_publishable__2ubp3p17GcpoQBqQgUj1g_9gFwVhC9
+      - key: RESEND_API_KEY
+        sync: false
+      - key: PQRS_FROM_EMAIL
+        sync: false
+      - key: PQRS_TO_EMAIL
+        value: fredy65991@hotmail.com
     healthCheckPath: /

@@ -197,6 +197,7 @@
             cursor: pointer;
             transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
         }
+        a.employee-tool { text-decoration: none; }
         .employee-tool:hover { border-color: #87b99d; box-shadow: 0 7px 18px rgba(25, 57, 39, .08); transform: translateY(-1px); }
         .employee-tool-number { display: grid; width: 32px; height: 32px; place-items: center; color: #34866e; background: #e8f4ec; border-radius: 50%; font-size: .7rem; font-weight: 700; }
         .employee-tool-copy { min-width: 0; }
@@ -461,6 +462,12 @@
         .site-guide-actions #btn-guide-next { color: #fff; background: #267348; border-color: #267348; }
 
         .workspace { padding: 28px clamp(18px, 4vw, 48px) 40px; }
+        .main-pqrs-entry { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; padding: 16px 20px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+        .main-pqrs-entry h2 { margin: 0 0 4px; color: var(--ink); font-size: 1.05rem; }
+        .main-pqrs-entry p { margin: 0; color: var(--muted); font-size: .88rem; }
+        .main-pqrs-entry .btn { width: auto; flex: 0 0 auto; }
+        body.portal-open .main-pqrs-entry { display: none; }
+        @media (max-width: 600px) { .main-pqrs-entry { align-items: stretch; flex-direction: column; } .main-pqrs-entry .btn { width: 100%; } }
 
         .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; padding: 6px; background: var(--wash); border-radius: 12px; }
         .tab-btn { padding: 12px 16px; color: var(--muted); background: transparent; border: 0; border-radius: 8px; font: 700 .95rem Arial, sans-serif; cursor: pointer; transition: .2s ease; }
@@ -474,8 +481,8 @@
         .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
 
         label { display: block; margin-bottom: 6px; color: var(--ink); font-weight: 700; font-size: .88rem; }
-        input, select { width: 100%; padding: 12px 14px; color: var(--ink); background: #fbfdfb; border: 1px solid #cbdad0; border-radius: 8px; font-size: .95rem; transition: border-color .2s; }
-        input:focus, select:focus { outline: 0; border-color: var(--green); box-shadow: 0 0 0 3px rgba(18, 132, 72, .12); }
+        input, select, textarea { width: 100%; padding: 12px 14px; color: var(--ink); background: #fbfdfb; border: 1px solid #cbdad0; border-radius: 8px; font: inherit; font-size: .95rem; transition: border-color .2s; }
+        input:focus, select:focus, textarea:focus { outline: 0; border-color: var(--green); box-shadow: 0 0 0 3px rgba(18, 132, 72, .12); }
 
         .btn { width: 100%; padding: 12px 18px; color: white; background: var(--green); border: 0; border-radius: 8px; font: 700 1rem Arial, sans-serif; cursor: pointer; transition: background .2s; }
         .btn:hover { background: #0c6c3a; }
@@ -504,6 +511,8 @@
 
         .admin-data-container { overflow-x: auto; margin-top: 20px; }
         .admin-data-container table { min-width: 720px; }
+        .admin-data-container .admin-anticipos-table { min-width: 1080px; }
+        .admin-anticipos-actions { display: flex; flex-wrap: wrap; gap: 6px; }
         .admin-data-container input { width: 100%; padding: 6px 8px; font-size: .85rem; }
         .action-btn { padding: 6px 10px; font-weight: bold; border-radius: 6px; border: 0; cursor: pointer; color: #fff; font-size: .8rem; }
         .save-btn { background: var(--green); }
@@ -935,6 +944,10 @@
     </div>
 
     <div class="workspace">
+        <section class="main-pqrs-entry" aria-labelledby="main-pqrs-title">
+            <div><h2 id="main-pqrs-title">¿Tienes una novedad?</h2><p>Presenta una petición, queja, reclamo o sugerencia.</p></div>
+            <button class="btn" type="button" id="btn-main-pqrs">Presentar PQRS</button>
+        </section>
         <div class="tabs">
             <button class="tab-btn active" id="btn-tab-empleado">Consulta Descuentos</button>
             <button class="tab-btn" id="btn-tab-rodamiento">Rodamiento</button>
@@ -1092,6 +1105,9 @@
                     <button class="employee-tool" type="button" data-employee-resource="advance">
                         <span class="employee-tool-number">05</span><span class="employee-tool-copy"><strong>Solicitar anticipo</strong><small>Envía una solicitud de anticipo.</small></span><span class="employee-tool-arrow" aria-hidden="true">&#8594;</span>
                     </button>
+                    <button class="employee-tool" type="button" data-employee-resource="pqrs">
+                        <span class="employee-tool-number">06</span><span class="employee-tool-copy"><strong>PQRS</strong><small>Presenta una petición, queja, reclamo o sugerencia.</small></span><span class="employee-tool-arrow" aria-hidden="true">&#8594;</span>
+                    </button>
                 </div>
                 <p class="employee-security-note">Tu información se muestra de forma privada y segura.</p>
                 <div class="finance-assistant">
@@ -1135,6 +1151,53 @@
                             <button class="btn" id="btn-solicitar-anticipo" type="button">Enviar solicitud</button>
                             <div id="anticipo-alert" class="alert" aria-live="polite"></div>
                         </div>
+                        <section class="document-card" aria-labelledby="advance-history-heading">
+                            <h4 id="advance-history-heading">Historial de solicitudes</h4>
+                            <p>Consulta el estado y los valores de tus solicitudes de anticipo.</p>
+                            <div id="anticipo-historial-alert" class="alert" aria-live="polite"></div>
+                            <div class="document-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Monto solicitado</th>
+                                            <th>Monto final</th>
+                                            <th>Estado</th>
+                                            <th>Última actualización</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="anticipo-historial-body"></tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                    <div id="employee-view-pqrs" class="employee-view">
+                        <h3>Presentar una PQRS</h3>
+                        <p>Describe tu petición, queja, reclamo o sugerencia. La novedad será enviada al correo de administración.</p>
+                        <form id="pqrs-form">
+                            <div class="filter-grid">
+                                <div class="form-group">
+                                    <label for="pqrs-category">Tipo de solicitud</label>
+                                    <select id="pqrs-category" required>
+                                        <option value="">Selecciona una opción</option>
+                                        <option value="Petición">Petición</option>
+                                        <option value="Queja">Queja</option>
+                                        <option value="Reclamo">Reclamo</option>
+                                        <option value="Sugerencia">Sugerencia</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pqrs-subject">Asunto</label>
+                                    <input id="pqrs-subject" type="text" maxlength="120" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="pqrs-description">Detalle</label>
+                                <textarea id="pqrs-description" rows="6" maxlength="5000" required></textarea>
+                            </div>
+                            <button class="btn" id="btn-send-pqrs" type="submit">Enviar PQRS</button>
+                        </form>
+                        <div id="pqrs-alert" class="alert" aria-live="polite"></div>
                     </div>
                     <div id="employee-view-trabajo" class="employee-view">
                         <h3>Mi trabajo día a día</h3>
@@ -1295,14 +1358,31 @@
                 <button class="btn" id="btn-toggle-anticipos" type="button" disabled>Verificando solicitudes...</button>
                 <button class="btn" id="btn-exportar-anticipos">Descargar Anticipos en Excel</button>
                 <button class="btn btn-danger" id="btn-delete-all-anticipos">Borrar Todos los Anticipos</button>
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="filter-anticipos-estado">Filtrar por estado</label>
+                        <select id="filter-anticipos-estado">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="aprobado">Aprobado</option>
+                            <option value="rechazado">Rechazado</option>
+                            <option value="modificado">Monto modificado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filter-anticipos-busqueda">Buscar por nombre o cédula</label>
+                        <input type="search" id="filter-anticipos-busqueda" placeholder="Nombre o número de cédula">
+                    </div>
+                </div>
                 <div id="admin-anticipos-section" class="admin-data-container" style="display: none;">
-                    <table>
+                    <table class="admin-anticipos-table">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
                                 <th>Cédula</th>
                                 <th>Fecha</th>
-                                <th>Monto</th>
+                                <th>Monto solicitado</th>
+                                <th>Monto final</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -1310,6 +1390,14 @@
                         <tbody id="admin-anticipos-body"></tbody>
                     </table>
                 </div>
+                </section>
+                <section class="admin-upload-card admin-admin-actions" aria-labelledby="admin-pqrs-heading">
+                    <h3 id="admin-pqrs-heading">PQRS recibidas</h3>
+                    <p style="color: var(--muted); font-size: 0.9rem;">Las solicitudes enviadas desde el portal se guardan aquí para consulta y descarga.</p>
+                    <p id="admin-pqrs-count" style="color: var(--muted); font-size: 0.9rem;" aria-live="polite">Aún no se han consultado las PQRS.</p>
+                    <button class="btn btn-secondary" id="btn-refresh-pqrs" type="button">Actualizar PQRS</button>
+                    <button class="btn" id="btn-export-pqrs" type="button">Descargar PQRS en Excel</button>
+                    <div id="admin-pqrs-alert" class="alert" aria-live="polite"></div>
                 </section>
 
                 <!-- Tabla de Edición Manual de Registros -->
@@ -1996,7 +2084,73 @@
         const cedula = document.body.dataset.employeeCedula || '';
         if (viewName === 'trabajo') await loadTrabajoDiario(cedula);
         if (viewName === 'prestamos') await loadPrestamos(cedula);
-        if (viewName === 'anticipo') await loadAdvanceAvailability();
+        if (viewName === 'anticipo') {
+            await Promise.all([loadAdvanceAvailability(), loadEmployeeAdvanceHistory(cedula)]);
+        }
+    };
+
+    let openPqrsAfterEmployeeLogin = false;
+
+    const sendPqrs = async event => {
+        event.preventDefault();
+        const user = auth.currentUser;
+        if (!user?.email?.endsWith('@empleados.censer.local')) {
+            return showAlert('pqrs-alert', 'Inicia sesión en el portal de empleados para enviar una PQRS.', 'error');
+        }
+
+        const button = document.getElementById('btn-send-pqrs');
+        const alertId = 'pqrs-alert';
+        button.disabled = true;
+        button.textContent = 'Enviando...';
+        document.getElementById(alertId).style.display = 'none';
+        try {
+            const category = document.getElementById('pqrs-category').value;
+            const subject = document.getElementById('pqrs-subject').value.trim();
+            const description = document.getElementById('pqrs-description').value.trim();
+            const cedula = normalizeCedula(user.email.slice(0, -'@empleados.censer.local'.length));
+            const requestReference = await addDoc(collection(db, 'pqrs'), {
+                cedula,
+                tipo: category,
+                asunto: subject,
+                detalle: description,
+                estado: 'recibida',
+                creadoEn: serverTimestamp()
+            });
+            document.getElementById('pqrs-form').reset();
+
+            let emailError = '';
+            try {
+                const token = await getIdToken(user);
+                const response = await fetch('/api/pqrs', {
+                    method: 'POST',
+                    headers: {
+                        authorization: `Bearer ${token}`,
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({ category, subject, description, requestId: requestReference.id })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || `Error HTTP ${response.status}`);
+            } catch (error) {
+                emailError = error instanceof Error && error.message
+                    ? error.message
+                    : 'No se pudo enviar la notificación por correo.';
+            }
+
+            if (emailError) {
+                showAlert(alertId, `La PQRS quedó guardada en el portal y administración podrá descargarla. No necesitas enviarla otra vez. No se pudo enviar el correo: ${emailError}`, 'error');
+            } else {
+                showAlert(alertId, 'Tu PQRS quedó guardada y se notificó por correo a administración.', 'success');
+            }
+        } catch (error) {
+            const message = error instanceof Error && error.message
+                ? error.message
+                : 'No se pudo guardar la PQRS. Inténtalo más tarde.';
+            showAlert(alertId, message, 'error');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Enviar PQRS';
+        }
     };
 
     const loadTrabajoDiario = async cedula => {
@@ -2161,6 +2315,74 @@
         return !snapshot.exists() || snapshot.data().habilitado === true;
     };
 
+    const getAdvanceDate = value => {
+        const date = value?.toDate ? value.toDate() : value ? new Date(value) : null;
+        return date && !Number.isNaN(date.getTime()) ? date : null;
+    };
+
+    const formatAdvanceDate = value => {
+        const date = getAdvanceDate(value);
+        return date
+            ? date.toLocaleString('es-CO')
+            : '';
+    };
+
+    const loadEmployeeAdvanceHistory = async cedula => {
+        const alertId = 'anticipo-historial-alert';
+        const tbody = document.getElementById('anticipo-historial-body');
+        document.getElementById(alertId).style.display = 'none';
+        tbody.replaceChildren();
+
+        try {
+            const normalizedCedula = normalizeCedula(cedula);
+            if (!normalizedCedula) throw new Error('No se pudo identificar la cédula de la sesión.');
+            const snapshot = await getDocs(query(
+                collection(db, 'anticipos'),
+                where('cedula', '==', normalizedCedula)
+            ));
+            const requests = snapshot.docs
+                .map(requestDoc => requestDoc.data())
+                .sort((a, b) => (getAdvanceDate(b.solicitadoEn)?.getTime() || 0) - (getAdvanceDate(a.solicitadoEn)?.getTime() || 0));
+
+            if (!requests.length) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 5;
+                cell.textContent = 'Aún no tienes solicitudes de anticipo.';
+                row.appendChild(cell);
+                tbody.appendChild(row);
+                return;
+            }
+
+            const statusLabels = {
+                pendiente: 'Pendiente',
+                aprobado: 'Aprobado',
+                rechazado: 'Rechazado',
+                modificado: 'Monto modificado'
+            };
+            requests.forEach(request => {
+                const row = document.createElement('tr');
+                const requestedAmount = Number(request.montoSolicitado ?? request.monto ?? 0);
+                const values = [
+                    request.fecha || '',
+                    `$${requestedAmount.toLocaleString('es-CO')}`,
+                    `$${Number(request.monto || 0).toLocaleString('es-CO')}`,
+                    statusLabels[request.estado] || request.estado || 'Pendiente',
+                    formatAdvanceDate(request.actualizadoEn)
+                ];
+                values.forEach(value => {
+                    const cell = document.createElement('td');
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert(alertId, `No se pudo cargar el historial de anticipos${reason}. Verifique las reglas de Firebase.`, 'error');
+        }
+    };
+
     const loadAdvanceAvailability = async () => {
         const button = document.getElementById('btn-solicitar-anticipo');
         button.disabled = true;
@@ -2233,6 +2455,152 @@
         return new Map(profiles);
     };
 
+    const loadAdminPqrs = async () => {
+        const countLabel = document.getElementById('admin-pqrs-count');
+        countLabel.textContent = 'Cargando PQRS...';
+        try {
+            const snapshot = await getDocs(collection(db, 'pqrs'));
+            countLabel.textContent = snapshot.empty
+                ? 'Aún no se han recibido PQRS.'
+                : `${snapshot.size} PQRS guardada(s).`;
+        } catch (error) {
+            countLabel.textContent = 'No se pudieron consultar las PQRS.';
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert('admin-pqrs-alert', `No se pudieron cargar las PQRS${reason}. Verifique las reglas de Firebase.`, 'error');
+        }
+    };
+
+    const exportarPqrs = async () => {
+        if (!auth.currentUser || auth.currentUser.email?.endsWith('@empleados.censer.local')) {
+            return showAlert('admin-pqrs-alert', 'Debe iniciar sesión como administrador.', 'error');
+        }
+
+        const button = document.getElementById('btn-export-pqrs');
+        button.disabled = true;
+        try {
+            const snapshot = await getDocs(collection(db, 'pqrs'));
+            if (snapshot.empty) {
+                return showAlert('admin-pqrs-alert', 'No hay PQRS para descargar.', 'error');
+            }
+            const applicantNames = await getAdvanceApplicantNames(snapshot.docs);
+            const rows = snapshot.docs
+                .map(requestDoc => {
+                    const item = requestDoc.data();
+                    return {
+                        'Número de solicitud': requestDoc.id,
+                        'Nombre': applicantNames.get(String(item.cedula || '')) || 'No registrado',
+                        'Cédula': item.cedula || '',
+                        'Tipo': item.tipo || '',
+                        'Asunto': item.asunto || '',
+                        'Detalle': item.detalle || '',
+                        'Estado': item.estado || 'recibida',
+                        'Fecha de recepción': formatAdvanceDate(item.creadoEn)
+                    };
+                })
+                .sort((a, b) => b['Fecha de recepción'].localeCompare(a['Fecha de recepción']));
+            const worksheet = XLSX.utils.json_to_sheet(rows);
+            worksheet['!cols'] = [
+                { wch: 24 },
+                { wch: 32 },
+                { wch: 18 },
+                { wch: 16 },
+                { wch: 32 },
+                { wch: 60 },
+                { wch: 16 },
+                { wch: 24 }
+            ];
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'PQRS');
+            XLSX.writeFile(workbook, `pqrs-${new Date().toISOString().slice(0, 10)}.xlsx`);
+            showAlert('admin-pqrs-alert', `${rows.length} PQRS descargada(s) en Excel.`, 'success');
+        } catch (error) {
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert('admin-pqrs-alert', `No se pudieron descargar las PQRS${reason}. Verifique las reglas de Firebase.`, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    };
+
+    let adminAdvanceRequests = [];
+
+    const renderAdminAnticipos = () => {
+        const tbody = document.getElementById('admin-anticipos-body');
+        const statusFilter = document.getElementById('filter-anticipos-estado').value;
+        const searchTerm = document.getElementById('filter-anticipos-busqueda').value.trim().toLocaleLowerCase('es-CO');
+        const filteredRequests = adminAdvanceRequests.filter(request => {
+            const matchesStatus = !statusFilter || request.estado === statusFilter;
+            const matchesSearch = !searchTerm
+                || request.nombre.toLocaleLowerCase('es-CO').includes(searchTerm)
+                || String(request.cedula).includes(searchTerm);
+            return matchesStatus && matchesSearch;
+        });
+
+        tbody.replaceChildren();
+        if (!filteredRequests.length) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 7;
+            cell.textContent = adminAdvanceRequests.length
+                ? 'No hay solicitudes que coincidan con los filtros.'
+                : 'No hay solicitudes de anticipos.';
+            row.appendChild(cell);
+            tbody.appendChild(row);
+            return;
+        }
+
+        filteredRequests.forEach(request => {
+            const row = document.createElement('tr');
+            [
+                request.nombre,
+                request.cedula,
+                request.fecha,
+                `$${Number(request.montoSolicitado).toLocaleString('es-CO')}`
+            ].forEach(value => {
+                const cell = document.createElement('td');
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+
+            const amountCell = document.createElement('td');
+            const amountInput = document.createElement('input');
+            amountInput.type = 'number';
+            amountInput.min = '1';
+            amountInput.max = '100000000';
+            amountInput.step = 'any';
+            amountInput.value = String(request.monto);
+            amountInput.setAttribute('aria-label', `Monto final para ${request.nombre}`);
+            amountInput.id = `anticipo-monto-${request.id}`;
+            amountCell.appendChild(amountInput);
+            row.appendChild(amountCell);
+
+            const statusCell = document.createElement('td');
+            statusCell.textContent = ({
+                pendiente: 'Pendiente',
+                aprobado: 'Aprobado',
+                rechazado: 'Rechazado',
+                modificado: 'Monto modificado'
+            })[request.estado] || request.estado;
+            row.appendChild(statusCell);
+
+            const actionsCell = document.createElement('td');
+            actionsCell.className = 'admin-anticipos-actions';
+            const addAction = (label, className, action) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `action-btn ${className}`;
+                button.textContent = label;
+                button.addEventListener('click', action);
+                actionsCell.appendChild(button);
+            };
+            addAction('Guardar monto', 'save-btn', () => guardarMontoAnticipo(request));
+            addAction('Aprobar', 'save-btn', () => actualizarEstadoAnticipo(request.id, 'aprobado'));
+            addAction('Rechazar', 'delete-btn', () => actualizarEstadoAnticipo(request.id, 'rechazado'));
+            addAction('Borrar', 'delete-btn', () => borrarAnticipo(request.id));
+            row.appendChild(actionsCell);
+            tbody.appendChild(row);
+        });
+    };
+
     const solicitarAnticipo = async () => {
         const user = auth.currentUser;
         const employeeSuffix = '@empleados.censer.local';
@@ -2265,6 +2633,7 @@
             showAlert(alertId, 'Solicitud enviada correctamente. Será revisada por administración.', 'success');
             document.getElementById('anticipo-fecha').value = '';
             document.getElementById('anticipo-monto').value = '';
+            await loadEmployeeAdvanceHistory(cedula);
         } catch (error) {
             const reason = error?.code ? ` (${error.code})` : '';
             showAlert(alertId, `No se pudo enviar la solicitud${reason}. Confirma que las reglas de Firebase estén publicadas.`, 'error');
@@ -2286,13 +2655,19 @@
                     : item.solicitadoEn
                         ? new Date(item.solicitadoEn).toLocaleString('es-CO')
                         : '';
+                const actualizadoEn = item.actualizadoEn?.toDate
+                    ? item.actualizadoEn.toDate().toLocaleString('es-CO')
+                    : '';
                 return {
                     'Nombre del solicitante': applicantNames.get(String(item.cedula || '')) || 'No registrado',
                     'Número de Cédula': item.cedula || '',
                     'Fecha del Anticipo': item.fecha || '',
-                    'Monto Solicitado': Number(item.monto || 0),
+                    'Monto Solicitado': Number(item.montoSolicitado ?? item.monto ?? 0),
+                    'Monto Final': Number(item.monto || 0),
                     'Estado': item.estado || 'pendiente',
-                    'Fecha de Solicitud': solicitadoEn
+                    'Fecha de Solicitud': solicitadoEn,
+                    'Última actualización': actualizadoEn,
+                    'Actualizado por': item.actualizadoPor || ''
                 };
             });
 
@@ -2302,8 +2677,11 @@
                 { wch: 20 },
                 { wch: 20 },
                 { wch: 20 },
+                { wch: 20 },
                 { wch: 16 },
-                { wch: 24 }
+                { wch: 24 },
+                { wch: 24 },
+                { wch: 32 }
             ];
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Anticipos');
@@ -2316,48 +2694,75 @@
     };
 
     const loadAdminAnticipos = async () => {
-        const tbody = document.getElementById('admin-anticipos-body');
         const container = document.getElementById('admin-anticipos-section');
 
         try {
             const snapshot = await getDocs(collection(db, 'anticipos'));
-            tbody.innerHTML = '';
             if (snapshot.empty) {
-                container.style.display = 'none';
-                return;
+                adminAdvanceRequests = [];
+            } else {
+                const applicantNames = await getAdvanceApplicantNames(snapshot.docs);
+                adminAdvanceRequests = snapshot.docs.map(docSnap => {
+                    const item = docSnap.data();
+                    return {
+                        id: docSnap.id,
+                        cedula: String(item.cedula || ''),
+                        nombre: applicantNames.get(String(item.cedula || '')) || 'No registrado',
+                        fecha: item.fecha || '',
+                        montoSolicitado: Number(item.montoSolicitado ?? item.monto ?? 0),
+                        monto: Number(item.monto || 0),
+                        estado: item.estado || 'pendiente'
+                    };
+                });
             }
 
-            const applicantNames = await getAdvanceApplicantNames(snapshot.docs);
-            snapshot.docs.forEach(docSnap => {
-                const item = docSnap.data();
-                const tr = document.createElement('tr');
-                const cells = [
-                    applicantNames.get(String(item.cedula || '')) || 'No registrado',
-                    item.cedula || '',
-                    item.fecha || '',
-                    `$${Number(item.monto || 0).toLocaleString('es-CO')}`,
-                    item.estado || 'pendiente'
-                ];
-
-                cells.forEach(value => {
-                    const td = document.createElement('td');
-                    td.textContent = value;
-                    tr.appendChild(td);
-                });
-
-                const actions = document.createElement('td');
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'action-btn delete-btn';
-                deleteButton.textContent = 'Borrar';
-                deleteButton.addEventListener('click', () => borrarAnticipo(docSnap.id));
-                actions.appendChild(deleteButton);
-                tr.appendChild(actions);
-                tbody.appendChild(tr);
-            });
-
             container.style.display = 'block';
+            renderAdminAnticipos();
         } catch (error) {
             showAlert('admin-alert', 'No se pudieron cargar las solicitudes de anticipos.', 'error');
+        }
+    };
+
+    const guardarMontoAnticipo = async request => {
+        const monto = Number(document.getElementById(`anticipo-monto-${request.id}`).value);
+        if (!Number.isFinite(monto) || monto <= 0 || monto > 100000000) {
+            return showAlert('admin-alert', 'El monto debe ser mayor que cero y no superar $100.000.000.', 'error');
+        }
+        if (monto === request.monto) {
+            return showAlert('admin-alert', 'El monto final es igual al valor actual; no se realizaron cambios.', 'error');
+        }
+
+        try {
+            await updateDoc(doc(db, 'anticipos', request.id), {
+                montoSolicitado: request.montoSolicitado,
+                monto,
+                estado: 'modificado',
+                actualizadoEn: serverTimestamp(),
+                actualizadoPor: auth.currentUser?.email || ''
+            });
+            showAlert('admin-alert', 'Monto actualizado. La solicitud quedó marcada como monto modificado.', 'success');
+            await loadAdminAnticipos();
+        } catch (error) {
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert('admin-alert', `No se pudo actualizar el monto del anticipo${reason}. Verifique las reglas de Firebase.`, 'error');
+        }
+    };
+
+    const actualizarEstadoAnticipo = async (id, estado) => {
+        const estadoTexto = estado === 'aprobado' ? 'aprobar' : 'rechazar';
+        if (!confirm(`¿Confirma que desea ${estadoTexto} esta solicitud de anticipo?`)) return;
+
+        try {
+            await updateDoc(doc(db, 'anticipos', id), {
+                estado,
+                actualizadoEn: serverTimestamp(),
+                actualizadoPor: auth.currentUser?.email || ''
+            });
+            showAlert('admin-alert', `Solicitud de anticipo ${estado}.`, 'success');
+            await loadAdminAnticipos();
+        } catch (error) {
+            const reason = error?.code ? ` (${error.code})` : '';
+            showAlert('admin-alert', `No se pudo actualizar el estado del anticipo${reason}. Verifique las reglas de Firebase.`, 'error');
         }
     };
 
@@ -2989,11 +3394,15 @@
                 case 'advance':
                     void showEmployeeView('anticipo');
                     break;
+                case 'pqrs':
+                    void showEmployeeView('pqrs');
+                    break;
                 default:
                     break;
             }
         });
     });
+    document.getElementById('pqrs-form').addEventListener('submit', sendPqrs);
 
     document.getElementById('btn-tab-admin').addEventListener('click', openAdmin);
     document.getElementById('btn-portal-admin').addEventListener('click', event => {
@@ -3128,6 +3537,8 @@
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
     document.getElementById('btn-solicitar-anticipo').addEventListener('click', solicitarAnticipo);
     document.getElementById('btn-toggle-anticipos').addEventListener('click', toggleAdvanceRequests);
+    document.getElementById('filter-anticipos-estado').addEventListener('change', renderAdminAnticipos);
+    document.getElementById('filter-anticipos-busqueda').addEventListener('input', renderAdminAnticipos);
     document.querySelectorAll('[data-employee-view]').forEach(button => button.addEventListener('click', () => showEmployeeView(button.dataset.employeeView)));
     document.getElementById('btn-generar-certificado').addEventListener('click', generarCertificado);
     document.getElementById('btn-procesar-trabajo').addEventListener('click', () => procesarBaseEmpleado('trabajo-diario-file', 'trabajoDiario', 'trabajo'));
@@ -3139,6 +3550,8 @@
     document.getElementById('btn-procesar-pdf').addEventListener('click', procesarPdfs);
     document.getElementById('btn-exportar-anticipos').addEventListener('click', exportarAnticipos);
     document.getElementById('btn-delete-all-anticipos').addEventListener('click', borrarTodosLosAnticipos);
+    document.getElementById('btn-refresh-pqrs').addEventListener('click', loadAdminPqrs);
+    document.getElementById('btn-export-pqrs').addEventListener('click', exportarPqrs);
     document.getElementById('btn-delete-all').addEventListener('click', borrarTodosLosRegistros);
     document.getElementById('btn-create-employee').addEventListener('click', async () => {
         const cedula = extractDigits(document.getElementById('new-employee-cedula').value);
@@ -3264,9 +3677,18 @@
 
     document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
     document.getElementById('btn-refresh-visits').addEventListener('click', loadSiteVisitStats);
+    document.getElementById('btn-main-pqrs').addEventListener('click', () => {
+        openPqrsAfterEmployeeLogin = true;
+        openPortal();
+        if (auth.currentUser?.email?.endsWith('@empleados.censer.local')) {
+            openPqrsAfterEmployeeLogin = false;
+            void showEmployeeView('pqrs');
+        }
+    });
     document.getElementById('btn-employee-logout-top').addEventListener('click', async () => {
         await signOut(auth);
         document.body.classList.remove('portal-authenticated');
+        openPqrsAfterEmployeeLogin = false;
         document.querySelectorAll('.employee-view').forEach(view => view.classList.remove('active'));
         resetFinancialAssistant();
     });
@@ -3289,6 +3711,10 @@
             const cedula = user.email.split('@')[0];
             const nombreCuenta = user.displayName || 'trabajador';
             document.body.dataset.employeeCedula = cedula;
+            if (openPqrsAfterEmployeeLogin) {
+                openPqrsAfterEmployeeLogin = false;
+                void showEmployeeView('pqrs');
+            }
             document.getElementById('portal-welcome-name').textContent = nombreCuenta;
             document.getElementById('employee-info-cedula').textContent = cedula;
             document.getElementById('certificate-name').textContent = nombreCuenta;
@@ -3322,8 +3748,10 @@
             });
         }
         if (user && !isEmployee) {
+            openPqrsAfterEmployeeLogin = false;
             loadAdminRecords();
             loadAdminAnticipos();
+            loadAdminPqrs();
             loadAdminAdvanceControl();
             loadSiteVisitStats();
         }
