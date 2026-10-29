@@ -1145,8 +1145,8 @@
                                 <input type="date" id="anticipo-fecha" required>
                             </div>
                             <div class="form-group">
-                                <label for="anticipo-monto">Monto solicitado</label>
-                                <input type="number" id="anticipo-monto" placeholder="Ej: 500000" min="1" max="100000000" step="1000" inputmode="numeric" required>
+                                <label for="anticipo-monto">Monto solicitado (COP)</label>
+                                <input type="text" id="anticipo-monto" placeholder="Ej: 500.000" inputmode="numeric" pattern="[0-9.,]*" required>
                             </div>
                             <button class="btn" id="btn-solicitar-anticipo" type="button">Enviar solicitud</button>
                             <div id="anticipo-alert" class="alert" aria-live="polite"></div>
@@ -1643,6 +1643,25 @@
         }
         const amount = Number(parsed);
         return Number.isFinite(amount) ? amount : null;
+    };
+
+    const formatCurrencyCOP = value => {
+        const numericValue = Number.isFinite(Number(value)) ? Number(value) : parseMoney(value);
+        if (!Number.isFinite(numericValue)) return '$0';
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            maximumFractionDigits: 0
+        }).format(numericValue);
+    };
+
+    const formatInputCOP = value => {
+        const numericValue = Number.isFinite(Number(value)) ? Number(value) : parseMoney(value);
+        if (!Number.isFinite(numericValue)) return '';
+        return new Intl.NumberFormat('es-CO', {
+            maximumFractionDigits: 0,
+            useGrouping: true
+        }).format(Math.round(numericValue));
     };
 
     const cellText = value => {
@@ -2365,8 +2384,8 @@
                 const requestedAmount = Number(request.montoSolicitado ?? request.monto ?? 0);
                 const values = [
                     request.fecha || '',
-                    `$${requestedAmount.toLocaleString('es-CO')}`,
-                    `$${Number(request.monto || 0).toLocaleString('es-CO')}`,
+                    formatCurrencyCOP(requestedAmount),
+                    formatCurrencyCOP(request.monto || 0),
                     statusLabels[request.estado] || request.estado || 'Pendiente',
                     formatAdvanceDate(request.actualizadoEn)
                 ];
@@ -2554,7 +2573,7 @@
                 request.nombre,
                 request.cedula,
                 request.fecha,
-                `$${Number(request.montoSolicitado).toLocaleString('es-CO')}`
+                formatCurrencyCOP(request.montoSolicitado)
             ].forEach(value => {
                 const cell = document.createElement('td');
                 cell.textContent = value;
@@ -2563,13 +2582,18 @@
 
             const amountCell = document.createElement('td');
             const amountInput = document.createElement('input');
-            amountInput.type = 'number';
+            amountInput.type = 'text';
+            amountInput.inputMode = 'numeric';
+            amountInput.pattern = '[0-9.,]*';
             amountInput.min = '1';
             amountInput.max = '100000000';
-            amountInput.step = 'any';
-            amountInput.value = String(request.monto);
+            amountInput.value = formatInputCOP(request.monto || 0);
             amountInput.setAttribute('aria-label', `Monto final para ${request.nombre}`);
             amountInput.id = `anticipo-monto-${request.id}`;
+            amountInput.addEventListener('blur', () => {
+                const numericValue = parseMoney(amountInput.value);
+                amountInput.value = Number.isFinite(numericValue) ? formatInputCOP(numericValue) : '';
+            });
             amountCell.appendChild(amountInput);
             row.appendChild(amountCell);
 
@@ -2609,7 +2633,8 @@
         }
         const cedula = extractDigits(user.email.slice(0, -employeeSuffix.length));
         const fecha = document.getElementById('anticipo-fecha').value;
-        const monto = Number(document.getElementById('anticipo-monto').value);
+        const montoInput = document.getElementById('anticipo-monto');
+        const monto = parseMoney(montoInput.value);
         const alertId = 'anticipo-alert';
 
         document.getElementById(alertId).style.display = 'none';
@@ -2632,7 +2657,7 @@
             });
             showAlert(alertId, 'Solicitud enviada correctamente. Será revisada por administración.', 'success');
             document.getElementById('anticipo-fecha').value = '';
-            document.getElementById('anticipo-monto').value = '';
+            montoInput.value = '';
             await loadEmployeeAdvanceHistory(cedula);
         } catch (error) {
             const reason = error?.code ? ` (${error.code})` : '';
@@ -2724,7 +2749,8 @@
     };
 
     const guardarMontoAnticipo = async request => {
-        const monto = Number(document.getElementById(`anticipo-monto-${request.id}`).value);
+        const montoInput = document.getElementById(`anticipo-monto-${request.id}`);
+        const monto = parseMoney(montoInput.value);
         if (!Number.isFinite(monto) || monto <= 0 || monto > 100000000) {
             return showAlert('admin-alert', 'El monto debe ser mayor que cero y no superar $100.000.000.', 'error');
         }
@@ -3532,6 +3558,13 @@
         activeSiteGuideStep += 1;
         updateSiteGuideStep(true);
     });
+    const anticipoMontoInput = document.getElementById('anticipo-monto');
+    if (anticipoMontoInput) {
+        anticipoMontoInput.addEventListener('blur', () => {
+            const numericValue = parseMoney(anticipoMontoInput.value);
+            anticipoMontoInput.value = Number.isFinite(numericValue) ? formatInputCOP(numericValue) : '';
+        });
+    }
     document.getElementById('btn-consultar').addEventListener('click', consultarDescuentos);
     document.getElementById('btn-consultar-rodamiento').addEventListener('click', consultarRodamiento);
     document.getElementById('btn-consultar-documentos').addEventListener('click', consultarDocumentos);
