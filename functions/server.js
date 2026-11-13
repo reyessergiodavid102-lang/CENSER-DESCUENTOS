@@ -7,9 +7,6 @@ const path = require('node:path');
 
 const employeeEmailSuffix = '@empleados.censer.local';
 const maxBodyBytes = 64 * 1024;
-const pqrsRateLimitWindowMs = 60 * 60 * 1000;
-const maxPqrsSubmissionsPerHour = 3;
-const pqrsSubmissionTimes = new Map();
 
 const normalizeCedula = value => String(value ?? '').replace(/\D/g, '');
 const normalizeLabel = value => String(value ?? '')
@@ -443,9 +440,6 @@ const createApp = ({
   geminiKey,
   supabaseUrl,
   supabaseAnonKey,
-  resendApiKey,
-  pqrsFromEmail,
-  pqrsToEmail = 'fredy65991@hotmail.com',
   fetchImpl = fetch
 }) => async (request, response) => {
   const url = new URL(request.url, 'http://localhost');
@@ -466,9 +460,8 @@ const createApp = ({
     }
     return;
   }
-  const isPqrsRequest = request.method === 'POST' && url.pathname === '/api/pqrs';
   const isFinancialAssistantRequest = request.method === 'POST' && url.pathname === '/api/financialAssistant';
-  if (!isPqrsRequest && !isFinancialAssistantRequest) {
+  if (!isFinancialAssistantRequest) {
     return jsonResponse(response, 404, { error: 'Ruta no encontrada.' });
   }
 
@@ -506,71 +499,6 @@ const createApp = ({
   const cedula = email.slice(0, -employeeEmailSuffix.length);
   if (!/^\d{6,12}$/.test(cedula)) {
     return jsonResponse(response, 403, { error: 'La cuenta del trabajador no tiene una cédula válida.' });
-  }
-
-  if (isPqrsRequest) {
-    if (!resendApiKey || !pqrsFromEmail || !pqrsToEmail) {
-      return jsonResponse(response, 503, { error: 'El envío de PQRS no está configurado. Contacta a administración.' });
-    }
-
-    let pqrsBody;
-    try {
-      pqrsBody = JSON.parse(await getRequestBody(request));
-    } catch (error) {
-      return jsonResponse(response, error.statusCode || 400, {
-        error: error.statusCode ? error.message : 'El cuerpo de la solicitud no es válido.'
-      });
-    }
-
-    const categories = ['Petición', 'Queja', 'Reclamo', 'Sugerencia'];
-    const category = typeof pqrsBody?.category === 'string' ? pqrsBody.category.trim() : '';
-    const subject = typeof pqrsBody?.subject === 'string' ? pqrsBody.subject.trim().replace(/[\r\n]+/g, ' ') : '';
-    const description = typeof pqrsBody?.description === 'string' ? pqrsBody.description.trim() : '';
-    if (!categories.includes(category)
-      || subject.length < 3 || subject.length > 120
-      || description.length < 10 || description.length > 5000) {
-      return jsonResponse(response, 400, { error: 'Revisa el tipo, asunto y detalle de la PQRS.' });
-    }
-    const submittedAt = Date.now();
-    const recentSubmissions = (pqrsSubmissionTimes.get(decodedToken.uid) || [])
-      .filter(timestamp => submittedAt - timestamp < pqrsRateLimitWindowMs);
-    if (recentSubmissions.length >= maxPqrsSubmissionsPerHour) {
-      return jsonResponse(response, 429, { error: 'Ya enviaste varias PQRS recientemente. Inténtalo más tarde.' });
-    }
-    recentSubmissions.push(submittedAt);
-    pqrsSubmissionTimes.set(decodedToken.uid, recentSubmissions);
-
-    try {
-      const emailResponse = await fetchImpl('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${resendApiKey}`,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: pqrsFromEmail,
-          to: [pqrsToEmail],
-          subject: `[PQRS ${category}] ${subject}`,
-          text: [
-            `Tipo: ${category}`,
-            `Asunto: ${subject}`,
-            `Cédula del trabajador: ${cedula}`,
-            '',
-            'Detalle:',
-            description
-          ].join('\n')
-        })
-      });
-      if (!emailResponse.ok) {
-        console.error('PQRS email provider rejected the request:', emailResponse.status);
-        return jsonResponse(response, 502, { error: 'No se pudo entregar la PQRS por correo. Inténtalo más tarde.' });
-      }
-    } catch (error) {
-      console.error('Could not deliver PQRS email:', error?.name);
-      return jsonResponse(response, 502, { error: 'No se pudo conectar con el servicio de correo. Inténtalo más tarde.' });
-    }
-
-    return jsonResponse(response, 200, { message: 'Tu PQRS fue enviada correctamente a administración.' });
   }
 
   if (!db) {
@@ -762,9 +690,6 @@ const startServer = () => {
     geminiKey: process.env.GEMINI_API_KEY,
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-    resendApiKey: process.env.RESEND_API_KEY,
-    pqrsFromEmail: process.env.PQRS_FROM_EMAIL,
-    pqrsToEmail: process.env.PQRS_TO_EMAIL || 'fredy65991@hotmail.com'
   }));
   const port = Number(process.env.PORT || 4137);
   server.listen(port, '0.0.0.0', () => {
